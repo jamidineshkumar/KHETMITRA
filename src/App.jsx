@@ -64,8 +64,8 @@ export default function App() {
   // Supabase & Auth state
   const [session, setSession] = useState(null);
   const [authChecked, setAuthChecked] = useState(!hasSupabaseConfig);
-  const [demo, setDemo] = useState(false);
-  const [userRole, setUserRole] = useState(() => getStoredJson('khetmitra_user_role', 'customer')); // 'customer' or 'admin'
+  const demo = false; // Demo authentication is intentionally disabled.
+  const [userRole] = useState('customer'); // Admin privileges must come from trusted server-side authorization.
   const [activeUserEmail, setActiveUserEmail] = useState('');
 
   // Navigation state
@@ -116,29 +116,21 @@ export default function App() {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setAuthChecked(true);
-      if (data.session) {
-        setDemo(false);
-        const email = data.session.user?.email || '';
-        setActiveUserEmail(email);
-        const role = email.toLowerCase().includes('admin') ? 'admin' : 'customer';
-        setUserRole(role);
-        setStoredJson('khetmitra_user_role', role);
+      if (data.session && data.session.user?.email_confirmed_at) {
+        setActiveUserEmail(data.session.user.email || '');
+      } else if (data.session) {
+        await supabase.auth.signOut();
+        setSession(null);
       }
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
+      const verifiedSession = nextSession?.user?.email_confirmed_at ? nextSession : null;
+      setSession(verifiedSession);
       setAuthChecked(true);
-      if (nextSession) {
-        setDemo(false);
-        const email = nextSession.user?.email || '';
-        setActiveUserEmail(email);
-        const role = email.toLowerCase().includes('admin') ? 'admin' : 'customer';
-        setUserRole(role);
-        setStoredJson('khetmitra_user_role', role);
-      }
+      setActiveUserEmail(verifiedSession?.user?.email || '');
     });
 
     return () => subscription.unsubscribe();
@@ -202,24 +194,8 @@ export default function App() {
     });
   }
 
-  function handleDemoLogin(email, role) {
-    setDemo(true);
-    setActiveUserEmail(email);
-    setUserRole(role);
-    setStoredJson('khetmitra_user_role', role);
-    setActiveNav('Overview');
-    showToast(
-      role === 'admin'
-        ? 'Signed in to Administrator Hardware Console'
-        : 'Signed in to Customer Farmer Dashboard'
-    );
-  }
-
-  function handleSwitchRole(newRole) {
-    setUserRole(newRole);
-    setStoredJson('khetmitra_user_role', newRole);
-    setActiveNav('Overview');
-    showToast(`Switched view to ${newRole === 'admin' ? 'Admin Console' : 'Customer View'}`);
+  function handleSwitchRole() {
+    showToast('Roles cannot be changed from the browser. Administrator access requires trusted server-side authorization.');
   }
 
   async function handleSignOut() {
@@ -227,7 +203,6 @@ export default function App() {
       await supabase.auth.signOut();
     }
     setSession(null);
-    setDemo(false);
     setActiveUserEmail('');
     setActiveNav('Overview');
   }
@@ -300,9 +275,7 @@ export default function App() {
   // Auth Screen (if not signed in and not in demo mode)
   if (!session && !demo) {
     return (
-      <AuthScreen
-        onLoginSuccess={handleDemoLogin}
-      />
+      <AuthScreen />
     );
   }
 
