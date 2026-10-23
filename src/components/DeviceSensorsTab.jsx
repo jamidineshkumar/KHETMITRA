@@ -64,7 +64,7 @@ export default function DeviceSensorsTab({
       {pingSuccess && (
         <div className="form-message success" role="status">
           <Check size={16} />
-          <span>Ping acknowledged by simulated ESP32 controller (RTT: 42ms).</span>
+          <span>Controller ping is unavailable until the physical ESP32 is connected.</span>
         </div>
       )}
 
@@ -87,7 +87,7 @@ export default function DeviceSensorsTab({
               </span>
             ) : (
               <span className="hardware-demo-badge">
-                <span className="pulse-demo" /> SIMULATED DEMO NODE
+                <span className="pulse-demo" /> HARDWARE NOT CONNECTED
               </span>
             )}
           </div>
@@ -98,7 +98,7 @@ export default function DeviceSensorsTab({
             <span className="tel-label">
               <Wifi size={14} /> Network Connectivity
             </span>
-            <strong>{isLiveHardware ? 'WiFi: Connected' : 'Simulated Loopback'}</strong>
+            <strong>{isLiveHardware ? 'WiFi: Connected' : 'Waiting for ESP32 connection'}</strong>
             <span className="tel-sub">RSSI: -64 dBm · Farm-Mesh-2.4G</span>
           </div>
 
@@ -106,7 +106,7 @@ export default function DeviceSensorsTab({
             <span className="tel-label">
               <Clock size={14} /> Last Heartbeat
             </span>
-            <strong>{espHeartbeatSeconds} seconds ago</strong>
+            <strong>{espHeartbeatSeconds == null ? 'No heartbeat received' : `${espHeartbeatSeconds} seconds ago`}</strong>
             <span className="tel-sub">Heartbeat Interval: 10s</span>
           </div>
 

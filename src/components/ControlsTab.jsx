@@ -70,11 +70,13 @@ export default function ControlsTab({
         </div>
         <div className="page-heading-actions">
           <span className="status-tag status-demo">
-            <span className="pulse-dot" /> {isLiveHardware ? 'Hardware Linked' : 'Simulation Mode'}
+            <span className="pulse-dot" /> {isLiveHardware ? 'Hardware Linked' : 'Hardware setup in progress'}
           </span>
         </div>
       </div>
 
+      {!isLiveHardware && <div className="demo-disclaimer-tag"><Info size={14} /><span>Controls are disabled until the ESP32 command path is connected and verified.</span></div>}
+      <fieldset disabled={!isLiveHardware} className="hardware-controls-fieldset">
       {/* Emergency Panic Banner */}
       <section className="panel panic-banner-panel">
         <div className="panic-copy">
@@ -386,12 +388,11 @@ export default function ControlsTab({
           </div>
 
           <p className="control-footnote">
-            When armed, physical ESP32 firmware executes detection logic in real time via local
-            FreeRTOS tasks. In this browser prototype, simulated intrusion triggers will update these
-            control states automatically.
+            Physical actuator control will be enabled only after the ESP32 firmware and command path are connected and verified.
           </p>
         </article>
       </div>
+      </fieldset>
     </div>
   );
 }

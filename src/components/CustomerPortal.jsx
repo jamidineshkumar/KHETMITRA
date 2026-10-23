@@ -44,7 +44,6 @@ export default function CustomerPortal({
   onClearReviewed,
   onSelectAlert,
   onResetSimulatedData,
-  onOpenDinuvoxModal,
   userEmail,
 }) {
   return (
@@ -155,7 +154,6 @@ export default function CustomerPortal({
           notificationSettings={notificationSettings}
           onSaveNotificationSettings={onSaveNotificationSettings}
           onResetSimulatedData={onResetSimulatedData}
-          onOpenDinuvoxModal={onOpenDinuvoxModal}
           isLiveHardware={isLiveHardware}
           userEmail={userEmail}
         />

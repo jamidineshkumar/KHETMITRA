@@ -89,13 +89,6 @@ export default function LiveMonitoringTab({
               <Layers size={16} /> Boundary Map
             </button>
           </div>
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={() => onSimulateDetection(selectedZoneData.name)}
-          >
-            <Plus size={16} /> Simulate on {selectedZoneData.name}
-          </button>
         </div>
       </div>
 
@@ -257,9 +250,9 @@ export default function LiveMonitoringTab({
               <span className="spec-sub">High-yield zone</span>
             </div>
             <div className="spec-box">
-              <span className="spec-label">Heartbeat Ping</span>
+              <span className="spec-label">Device connection</span>
               <strong>{selectedZoneData.lastPing}</strong>
-              <span className="spec-sub">Status: {sectorArmed[selectedZoneData.name] ? 'Active' : 'Standby'}</span>
+              <span className="spec-sub">Status: Waiting for ESP32 data</span>
             </div>
           </div>
 
@@ -292,6 +285,9 @@ export default function LiveMonitoringTab({
 
           {/* Quick Zone Test Buttons */}
           <div className="zone-test-actions">
+            <p className="no-events-note">Hardware tests are disabled until the physical ESP32 is connected.</p>
+            {/* Physical actuator test controls will be enabled after firmware integration. */}
+            <div hidden>
             <button
               type="button"
               className="btn btn-outline btn-sm flex-1"
@@ -313,6 +309,7 @@ export default function LiveMonitoringTab({
             >
               <Plus size={16} /> Simulate Intrusion
             </button>
+            </div>
           </div>
 
           {/* Activity on this sector */}

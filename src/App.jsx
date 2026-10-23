@@ -1,16 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, X, ShieldCheck, Sprout } from 'lucide-react';
+import { Check, X, Sprout } from 'lucide-react';
 import { hasSupabaseConfig, supabase } from './supabase';
 import {
-  INITIAL_ZONES,
-  INITIAL_EVENTS,
-  INITIAL_SENSORS,
-  INITIAL_ACTUATORS,
-  WILDLIFE_PRESETS,
-} from './constants/farmData';
-import {
-  fetchRemoteAlerts,
-  pushAlertToRemote,
   updateRemoteAlertStatus,
   subscribeToRealtimeAlerts,
 } from './services/supabaseService';
@@ -22,7 +13,6 @@ import AuthScreen from './components/AuthScreen';
 import CustomerPortal from './components/CustomerPortal';
 import AdminPortal from './components/AdminPortal';
 import AlertDetailModal from './components/AlertDetailModal';
-import DinuvoxModal from './components/DinuvoxModal';
 
 // Local storage helper
 function getStoredJson(key, fallback) {
@@ -85,12 +75,11 @@ export default function App() {
   const [toast, setToast] = useState('');
 
   // Dinuvox Profile Modal State
-  const [dinuvoxModalOpen, setDinuvoxModalOpen] = useState(false);
 
   // Core Farm System State
-  const [operatingMode, setOperatingMode] = useState('ARMED'); // 'ARMED', 'ALERT', 'DISARMED'
-  const [events, setEvents] = useState(() => getStoredJson('khetmitra_events', INITIAL_EVENTS));
-  const [sensors, setSensors] = useState(INITIAL_SENSORS);
+  const [operatingMode, setOperatingMode] = useState('DISARMED'); // Hardware is not connected yet
+  const [events, setEvents] = useState([]);
+  const [sensors, setSensors] = useState([]);
   const [selectedZone, setSelectedZone] = useState('North');
   const [selectedAlertForModal, setSelectedAlertForModal] = useState(null);
 
@@ -103,26 +92,14 @@ export default function App() {
   const [autoDuration, setAutoDuration] = useState(10);
 
   // Heartbeat counter (seconds since last heartbeat)
-  const [espHeartbeatSeconds, setEspHeartbeatSeconds] = useState(3);
-
-  // Developer Profile for Dinuvox
-  const [developerProfile] = useState(() =>
-    getStoredJson('khetmitra_dev_profile', {
-      name: 'Dinuvox',
-      bio: 'Lead Full-Stack, IoT & UI/UX Systems Architect. Architect of the KhetMitra agricultural field defense platform.',
-      photo: '',
-      linkedin: 'https://linkedin.com',
-      instagram: 'https://instagram.com',
-      github: 'https://github.com',
-    })
-  );
+  const [espHeartbeatSeconds] = useState(null);
 
   const [farmProfile, setFarmProfile] = useState(() =>
     getStoredJson('khetmitra_farm_profile', {
-      name: 'Green Valley Agricultural Plots',
-      area: '5.5 Acres (2.2 Hectares)',
-      crops: 'Wheat, Mustard, Seasonal Vegetables',
-      location: 'Northern Canal Boundary',
+      name: 'Your farm',
+      area: 'Not configured',
+      crops: 'Not configured',
+      location: 'Not configured',
     })
   );
 
@@ -167,22 +144,25 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch remote alerts if Supabase is connected
+  // Clear stale sample data; do not persist events locally.
+  useEffect(() => {
+    try {
+      localStorage.removeItem('khetmitra_events');
+      localStorage.removeItem('khetmitra_sensor_readings');
+      localStorage.removeItem('khetmitra_demo_events');
+    } catch {
+      // Storage may be unavailable in private browsing.
+    }
+  }, []);
+
+  // Subscribe only to new backend events. The physical ESP32 integration is still in progress.
+  // No historical rows or synthetic heartbeat are presented as live hardware data.
   useEffect(() => {
     if (!hasSupabaseConfig || !session) return;
-    fetchRemoteAlerts().then((remoteData) => {
-      if (remoteData && remoteData.length > 0) {
-        setEvents(remoteData);
-      }
-    });
-
     const unsubscribe = subscribeToRealtimeAlerts(
       (newAlert) => {
         setEvents((prev) => [newAlert, ...prev]);
-        showToast(`Intrusion Alert: ${newAlert.animal} at ${newAlert.side}!`);
-        if (notificationSettings.soundAlerts) {
-          playAcousticAlarm(2, 3200);
-        }
+        showToast(`New device event received: ${newAlert.side || 'Unknown sector'}`);
       },
       (updatedRow) => {
         setEvents((prev) =>
@@ -190,22 +170,8 @@ export default function App() {
         );
       }
     );
-
     return () => unsubscribe();
   }, [session, notificationSettings.soundAlerts]);
-
-  // Heartbeat ticker
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setEspHeartbeatSeconds((prev) => (prev >= 10 ? 1 : prev + 1));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Sync events to local storage
-  useEffect(() => {
-    setStoredJson('khetmitra_events', events);
-  }, [events]);
 
   // Toast auto-clear
   useEffect(() => {
@@ -266,54 +232,8 @@ export default function App() {
     setActiveNav('Overview');
   }
 
-  function simulateDetection(targetZone) {
-    const sides = ['North', 'East', 'South', 'West'];
-    const chosenSide = targetZone || sides[Math.floor(Math.random() * sides.length)];
-    const preset =
-      WILDLIFE_PRESETS[Math.floor(Math.random() * WILDLIFE_PRESETS.length)];
-
-    const sensorMap = {
-      North: 'PIR-N01',
-      East: 'PIR-E02',
-      South: 'PIR-S03',
-      West: 'PIR-W04',
-    };
-
-    let deterrentResponse = 'Monitored (Threshold normal)';
-
-    if (autoProtection && operatingMode !== 'DISARMED') {
-      deterrentResponse = preset.deterrentPreset || `Autonomous Buzzer (${buzzerIntensity}%) + Strobe (${lightIntensity}%) for ${autoDuration}s`;
-
-      setBuzzerOn(true);
-      setLightOn(true);
-
-      if (notificationSettings.soundAlerts) {
-        playAcousticAlarm(1.6, preset.soundFrequency || 2800);
-      }
-
-      setTimeout(() => {
-        setBuzzerOn(false);
-        setLightOn(false);
-      }, autoDuration * 1000);
-    }
-
-    const newEvent = {
-      id: Date.now(),
-      animal: preset.name,
-      threatLevel: preset.severity === 'high' ? 'High' : 'Medium',
-      side: chosenSide,
-      sensorId: sensorMap[chosenSide],
-      time: new Date(),
-      severity: preset.severity,
-      status: 'New',
-      deterrentAction: deterrentResponse,
-      deterrentSuccess: true,
-      notes: `${preset.threatDesc} Detected on ${chosenSide} sector boundary. AI confidence score: ${preset.confidence || '92%'}.`,
-    };
-
-    setEvents((prev) => [newEvent, ...prev]);
-    pushAlertToRemote(newEvent);
-    showToast(`Intrusion detected: ${preset.name} on ${chosenSide} sector!`);
+  function simulateDetection() {
+    showToast('Demo detections are disabled. Connect the physical ESP32 module to receive events.');
   }
 
   function reviewEvent(id) {
@@ -335,18 +255,11 @@ export default function App() {
   }
 
   function triggerPanicAlarm() {
-    setBuzzerOn(true);
-    setLightOn(true);
-    if (notificationSettings.soundAlerts) {
-      playAcousticAlarm(2.8, 3400);
-    }
-    showToast('EMERGENCY: Panic Alarm triggered across all 4 field boundaries!');
+    showToast('Hardware setup in progress. Alarm control will be available after ESP32 connection.');
   }
 
   function silenceAllDeterrents() {
-    setBuzzerOn(false);
-    setLightOn(false);
-    showToast('All field deterrents silenced');
+    showToast('Hardware setup in progress. Device controls are not connected yet.');
   }
 
   function saveFarmProfile(newProfile) {
@@ -360,10 +273,16 @@ export default function App() {
   }
 
   function resetSimulatedData() {
-    setEvents(INITIAL_EVENTS);
-    setSensors(INITIAL_SENSORS);
-    setStoredJson('khetmitra_events', INITIAL_EVENTS);
-    showToast('Prototype data reset to initial factory presets');
+    setEvents([]);
+    setSensors([]);
+    try {
+      localStorage.removeItem('khetmitra_events');
+      localStorage.removeItem('khetmitra_sensor_readings');
+      localStorage.removeItem('khetmitra_demo_events');
+    } catch {
+      // Storage may be unavailable.
+    }
+    showToast('Local sample data cleared. Waiting for physical device data.');
   }
 
   // Loading Screen
@@ -465,7 +384,6 @@ export default function App() {
             onClearReviewed={clearReviewedEvents}
             onSelectAlert={(alert) => setSelectedAlertForModal(alert)}
             onResetSimulatedData={resetSimulatedData}
-            onOpenDinuvoxModal={() => setDinuvoxModalOpen(true)}
             userEmail={effectiveEmail}
           />
         ) : (
@@ -503,7 +421,6 @@ export default function App() {
             onClearReviewed={clearReviewedEvents}
             onSelectAlert={(alert) => setSelectedAlertForModal(alert)}
             onResetSimulatedData={resetSimulatedData}
-            onOpenDinuvoxModal={() => setDinuvoxModalOpen(true)}
             userEmail={effectiveEmail}
           />
         )}
@@ -519,38 +436,10 @@ export default function App() {
         unresolvedCount={unresolvedCount}
       />
 
-      {/* Graffiti "Designed by Dinuvox" label */}
-      <div
-        className="dinuvox-graffiti-label"
-        onClick={() => setDinuvoxModalOpen(true)}
-        title="Tap to view architect credentials"
-        role="button"
-        tabIndex={0}
-      >
-        <span className="graffiti-text" aria-label="Designed by Dinuvox">
-          {'Designed by '.split('').map((ch, i) => (
-            <span key={i} className="graffiti-char" style={{ animationDelay: `${i * 0.07}s` }}>
-              {ch === ' ' ? '\u00A0' : ch}
-            </span>
-          ))}
-          <span className="graffiti-dinuvox">
-            {'Dinuvox'.split('').map((ch, i) => (
-              <span key={i} className="graffiti-char graffiti-bold" style={{ animationDelay: `${(i + 12) * 0.07}s` }}>
-                {ch}
-              </span>
-            ))}
-          </span>
-        </span>
-        <span className="graffiti-spray" />
-        <span className="graffiti-spray graffiti-spray-2" />
-      </div>
-
-      {/* Dinuvox Profile Modal */}
-      <DinuvoxModal
-        isOpen={dinuvoxModalOpen}
-        onClose={() => setDinuvoxModalOpen(false)}
-        developerProfile={developerProfile}
-      />
+      {/* Small, non-interactive CSS-only developer credit */}
+      <footer className="dinuvox-graffiti-label" aria-label="Designed by DinuVoX">
+        <span className="graffiti-text">Designed by <strong className="graffiti-bold">DinuVoX</strong></span>
+      </footer>
 
       {/* Incident Detail Modal */}
       {selectedAlertForModal && (

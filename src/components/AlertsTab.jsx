@@ -71,13 +71,6 @@ export default function AlertsTab({
           >
             <CheckCheck size={16} /> Mark All Reviewed
           </button>
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={() => onSimulateDetection()}
-          >
-            <Plus size={16} /> Simulate Alert
-          </button>
         </div>
       </div>
 
@@ -177,7 +170,7 @@ export default function AlertsTab({
             <p>Click on any alert row to view sensor telemetry and incident summary.</p>
           </div>
           <span className="status-tag status-demo">
-            <span className="pulse-dot" /> Simulated Database
+            <span className="pulse-dot" /> Waiting for device data
           </span>
         </div>
 

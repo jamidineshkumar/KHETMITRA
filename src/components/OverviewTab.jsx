@@ -84,14 +84,6 @@ export default function OverviewTab({
           <div className="hero-actions">
             <button
               type="button"
-              className="btn btn-primary"
-              onClick={onSimulateDetection}
-              title="Add a simulated wildlife intrusion event"
-            >
-              <Plus size={17} /> Simulate a detection
-            </button>
-            <button
-              type="button"
               className="btn btn-ghost"
               onClick={() => onNavigate('Live Monitoring')}
             >
@@ -101,7 +93,8 @@ export default function OverviewTab({
               type="button"
               className="btn btn-danger-soft"
               onClick={onTriggerAlarm}
-              title="Test the field alarm buzzer & strobe"
+              disabled={!isLiveHardware}
+              title="Available after physical ESP32 connection"
             >
               <Flame size={17} /> Panic Alarm
             </button>
@@ -112,7 +105,7 @@ export default function OverviewTab({
             <span>
               {isLiveHardware
                 ? 'Connected to authenticated physical ESP32 controller.'
-                : 'DEMO MODE — simulated telemetry. Hardware sensors are not yet connected.'}
+                : 'Hardware setup in progress — waiting for real ESP32 sensor data.'}
             </span>
           </div>
         </div>
@@ -134,6 +127,7 @@ export default function OverviewTab({
                 type="button"
                 className={`mode-btn ${operatingMode === 'ARMED' ? 'active' : ''}`}
                 onClick={() => setOperatingMode('ARMED')}
+                disabled={!isLiveHardware}
               >
                 Arm
               </button>
@@ -141,6 +135,7 @@ export default function OverviewTab({
                 type="button"
                 className={`mode-btn ${operatingMode === 'ALERT' ? 'active' : ''}`}
                 onClick={() => setOperatingMode('ALERT')}
+                disabled={!isLiveHardware}
               >
                 Alert
               </button>
@@ -148,6 +143,7 @@ export default function OverviewTab({
                 type="button"
                 className={`mode-btn ${operatingMode === 'DISARMED' ? 'active' : ''}`}
                 onClick={() => setOperatingMode('DISARMED')}
+                disabled={!isLiveHardware}
               >
                 Disarm
               </button>
@@ -164,12 +160,12 @@ export default function OverviewTab({
               </span>
             ) : (
               <span className="hardware-demo-badge">
-                <span className="pulse-demo" /> SIMULATED CONTROLLER
+                <span className="pulse-demo" /> HARDWARE NOT CONNECTED
               </span>
             )}
             <span className="heartbeat-text">
               <Clock size={13} />
-              Heartbeat: {espHeartbeatSeconds}s ago
+              {espHeartbeatSeconds == null ? 'Waiting for device heartbeat' : `Heartbeat: ${espHeartbeatSeconds}s ago`}
             </span>
           </div>
         </div>
@@ -225,7 +221,7 @@ export default function OverviewTab({
           <div className="stat-caption">
             {isLiveHardware
               ? 'WiFi RSSI -64 dBm · Authenticated'
-              : 'Virtual loopback · Heartbeat: active'}
+              : 'Waiting for physical device telemetry'}
           </div>
         </div>
 
@@ -345,6 +341,7 @@ export default function OverviewTab({
                 type="button"
                 className={`btn btn-sm ${buzzerOn ? 'btn-danger' : 'btn-outline'}`}
                 onClick={() => setBuzzerOn(!buzzerOn)}
+                disabled={!isLiveHardware}
               >
                 {buzzerOn ? 'Silence' : 'Activate'}
               </button>
@@ -364,6 +361,7 @@ export default function OverviewTab({
                 type="button"
                 className={`btn btn-sm ${lightOn ? 'btn-danger' : 'btn-outline'}`}
                 onClick={() => setLightOn(!lightOn)}
+                disabled={!isLiveHardware}
               >
                 {lightOn ? 'Turn Off' : 'Illuminate'}
               </button>
@@ -430,7 +428,7 @@ export default function OverviewTab({
           <div className="empty-state">
             <ShieldCheck size={32} />
             <strong>No detection alerts</strong>
-            <p>Your perimeter is calm. Click "Simulate a detection" to trigger a simulated intrusion.</p>
+            <p>No device events received yet. New alerts will appear when the connected ESP32 reports real sensor activity.</p>
           </div>
         ) : (
           <div className="events-list">

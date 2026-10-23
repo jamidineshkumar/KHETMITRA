@@ -86,7 +86,6 @@ export default function AdminPortal({
   userEmail,
   isLiveHardware,
   onResetSimulatedData,
-  onOpenDinuvoxModal,
 }) {
   const [adminTab, setAdminTab] = useState('users'); // 'users' or 'settings'
   const [usersList, setUsersList] = useState(INITIAL_USERS);

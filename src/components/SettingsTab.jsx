@@ -14,8 +14,6 @@ import {
   RefreshCw,
   Download,
   Info,
-  Sparkles,
-  Code2,
 } from 'lucide-react';
 import { hasSupabaseConfig } from '../supabase';
 import { checkSupabaseHealth } from '../services/supabaseService';
@@ -26,15 +24,14 @@ export default function SettingsTab({
   notificationSettings,
   onSaveNotificationSettings,
   onResetSimulatedData,
-  onOpenDinuvoxModal,
   isLiveHardware,
   userEmail,
 }) {
   // Local state for farm profile
-  const [farmName, setFarmName] = useState(farmProfile.name || 'Green Valley Agricultural Plots');
-  const [farmArea, setFarmArea] = useState(farmProfile.area || '5.5 Acres');
-  const [farmCrops, setFarmCrops] = useState(farmProfile.crops || 'Wheat, Mustard, Seasonal Vegetables');
-  const [farmLocation, setFarmLocation] = useState(farmProfile.location || 'Northern Boundary Canal Sector');
+  const [farmName, setFarmName] = useState(farmProfile.name || 'Your farm');
+  const [farmArea, setFarmArea] = useState(farmProfile.area || 'Not configured');
+  const [farmCrops, setFarmCrops] = useState(farmProfile.crops || 'Not configured');
+  const [farmLocation, setFarmLocation] = useState(farmProfile.location || 'Not configured');
 
   // Notification settings
   const [soundAlerts, setSoundAlerts] = useState(notificationSettings.soundAlerts !== false);
@@ -172,41 +169,6 @@ export default function SettingsTab({
         </section>
 
         {/* Unique Animated Dinuvox Creator Card (Kept only inside Settings!) */}
-        <section className="panel settings-panel dinuvox-settings-card">
-          <div className="dinuvox-shimmer-border" />
-          <div className="dinuvox-card-content">
-            <div className="dinuvox-pill-badge">
-              <Sparkles size={14} className="sparkle-anim" />
-              <span>Lead Architect & Creator</span>
-            </div>
-            <h3 className="dinuvox-heading-title">Dinuvox</h3>
-            <p className="dinuvox-card-desc">
-              Lead Full-Stack, IoT Hardware & UI/UX Systems Architect. Architect and engineer of the
-              KhetMitra smart agricultural defense platform.
-            </p>
-
-            <div className="dinuvox-tag-row">
-              <span className="dinuvox-mini-tag">
-                <Code2 size={12} /> React 18 + Vite
-              </span>
-              <span className="dinuvox-mini-tag">
-                <Radio size={12} /> ESP32 FreeRTOS
-              </span>
-              <span className="dinuvox-mini-tag">
-                <Database size={12} /> Supabase Realtime
-              </span>
-            </div>
-
-            <button
-              type="button"
-              className="dinuvox-action-btn"
-              onClick={onOpenDinuvoxModal}
-            >
-              <Sparkles size={16} /> Reveal Dinuvox Credentials
-            </button>
-          </div>
-        </section>
-
         {/* Audio & Alert Preferences */}
         <section className="panel settings-panel">
           <div className="panel-heading">
@@ -221,7 +183,7 @@ export default function SettingsTab({
             <div className="notify-toggle-item">
               <div>
                 <strong>Auditory Siren on High Alert</strong>
-                <p>Play simulated synthesizer tone when a high-priority intruder is detected</p>
+                <p>Browser sound preferences do not control the physical buzzer. Hardware alerts will be available after device integration.</p>
               </div>
               <label className="switch-label">
                 <input
