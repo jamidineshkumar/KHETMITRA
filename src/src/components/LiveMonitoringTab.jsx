@@ -1,0 +1,406 @@
+import React, { useState } from 'react';
+import {
+  Compass,
+  Radar,
+  AlertTriangle,
+  ShieldCheck,
+  Plus,
+  Radio,
+  Zap,
+  Volume2,
+  Lightbulb,
+  Check,
+  Layers,
+  Activity,
+  Sliders,
+  Power,
+  Info,
+} from 'lucide-react';
+import { INITIAL_ZONES } from '../constants/farmData';
+
+export default function LiveMonitoringTab({
+  events,
+  selectedZone,
+  setSelectedZone,
+  onSimulateDetection,
+  onTriggerZoneTest,
+  buzzerOn,
+  lightOn,
+}) {
+  const [activeTab, setActiveTab] = useState('radar'); // 'radar' or 'map'
+  const [sectorSensitivities, setSectorSensitivities] = useState({
+    North: 8,
+    East: 12,
+    South: 7,
+    West: 6,
+  });
+  const [sectorArmed, setSectorArmed] = useState({
+    North: true,
+    East: true,
+    South: true,
+    West: true,
+  });
+
+  // Latest event per zone
+  const latestBySide = Object.fromEntries(
+    ['North', 'East', 'South', 'West'].map((side) => [
+      side,
+      events.find((e) => e.side === side),
+    ])
+  );
+
+  const selectedZoneData =
+    INITIAL_ZONES.find((z) => z.name === selectedZone) || INITIAL_ZONES[0];
+  const selectedZoneEvents = events.filter((e) => e.side === selectedZoneData.name);
+
+  function handleSensitivityChange(zoneName, val) {
+    setSectorSensitivities((prev) => ({ ...prev, [zoneName]: Number(val) }));
+  }
+
+  function toggleSectorArmed(zoneName) {
+    setSectorArmed((prev) => ({ ...prev, [zoneName]: !prev[zoneName] }));
+  }
+
+  return (
+    <div className="live-monitoring-container page-section">
+      <div className="page-heading">
+        <div>
+          <span className="eyebrow">Real-Time Perimeter Radar</span>
+          <h1>Live Field Monitoring</h1>
+          <p>
+            Continuous 360° directional scanning across North, East, South, and West field
+            boundaries with sector-level sensitivity calibration.
+          </p>
+        </div>
+        <div className="page-heading-actions">
+          <div className="button-group">
+            <button
+              type="button"
+              className={`btn btn-sm ${activeTab === 'radar' ? 'btn-primary' : 'btn-outline'}`}
+              onClick={() => setActiveTab('radar')}
+            >
+              <Radar size={16} /> Radar Sweep
+            </button>
+            <button
+              type="button"
+              className={`btn btn-sm ${activeTab === 'map' ? 'btn-primary' : 'btn-outline'}`}
+              onClick={() => setActiveTab('map')}
+            >
+              <Layers size={16} /> Boundary Map
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Radar & Live Sector Visualization Layout */}
+      <div className="radar-layout-grid">
+        {/* Left: Radar Visualizer */}
+        <section className="panel radar-display-card">
+          <div className="panel-heading">
+            <div>
+              <h3>Field Radar Screen</h3>
+              <p>Visual radar sweep with detected motion hotspots</p>
+            </div>
+            <span className="status-tag status-demo">
+              <span className="pulse-dot" /> 360° Continuous Sweep
+            </span>
+          </div>
+
+          {activeTab === 'radar' ? (
+            <div className="radar-stage">
+              <div className="radar-ring ring-one" />
+              <div className="radar-ring ring-two" />
+              <div className="radar-ring ring-three" />
+              <div className="radar-sweep" />
+
+              {/* Direction Labels & Clickable Sector Zones */}
+              <button
+                type="button"
+                className={`radar-sector-label north ${selectedZoneData.name === 'North' ? 'active-zone' : ''} ${!sectorArmed.North ? 'sector-muted' : ''}`}
+                onClick={() => setSelectedZone('North')}
+              >
+                <span>NORTH (0°)</span>
+                {latestBySide.North?.status === 'New' && <span className="blip-radar blip-north" />}
+              </button>
+
+              <button
+                type="button"
+                className={`radar-sector-label east ${selectedZoneData.name === 'East' ? 'active-zone' : ''} ${!sectorArmed.East ? 'sector-muted' : ''}`}
+                onClick={() => setSelectedZone('East')}
+              >
+                <span>EAST (90°)</span>
+                {latestBySide.East?.status === 'New' && <span className="blip-radar blip-east" />}
+              </button>
+
+              <button
+                type="button"
+                className={`radar-sector-label south ${selectedZoneData.name === 'South' ? 'active-zone' : ''} ${!sectorArmed.South ? 'sector-muted' : ''}`}
+                onClick={() => setSelectedZone('South')}
+              >
+                <span>SOUTH (180°)</span>
+                {latestBySide.South?.status === 'New' && <span className="blip-radar blip-south" />}
+              </button>
+
+              <button
+                type="button"
+                className={`radar-sector-label west ${selectedZoneData.name === 'West' ? 'active-zone' : ''} ${!sectorArmed.West ? 'sector-muted' : ''}`}
+                onClick={() => setSelectedZone('West')}
+              >
+                <span>WEST (270°)</span>
+                {latestBySide.West?.status === 'New' && <span className="blip-radar blip-west" />}
+              </button>
+
+              {/* Central IoT Node */}
+              <div className="radar-center" title="Central ESP32 Hub & Master Station">
+                <Radar size={24} />
+              </div>
+            </div>
+          ) : (
+            /* Field Boundary Map Representation */
+            <div className="field-map" role="img" aria-label="Field boundary map">
+              <div className="map-top-label">
+                N <span>↑</span>
+              </div>
+              <div className="map-side-label map-west">W</div>
+              <div className="map-side-label map-east">E</div>
+              <div className="map-bottom-label">
+                S <span>↓</span>
+              </div>
+
+              {['North', 'East', 'South', 'West'].map((side) => {
+                const isSelected = selectedZoneData.name === side;
+                const hasAlert = latestBySide[side]?.status === 'New';
+                return (
+                  <button
+                    key={side}
+                    type="button"
+                    className={`map-zone zone-${side.toLowerCase()} ${isSelected ? 'map-zone-selected' : ''}`}
+                    onClick={() => setSelectedZone(side)}
+                  >
+                    <span className="zone-direction">{side} Sector</span>
+                    {hasAlert && (
+                      <span className="map-alert">
+                        <AlertTriangle size={13} /> Motion
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+
+              <div className="map-crop">
+                <div className="crop-title">
+                  <Activity size={18} />
+                  <span>KhetMitra Central</span>
+                </div>
+                <div className="crop-caption">ESP32 Hub · 5.5 Acres</div>
+              </div>
+            </div>
+          )}
+
+          <div className="radar-legend">
+            <div className="legend-item">
+              <span className="legend-dot green" /> Secure Boundary
+            </div>
+            <div className="legend-item">
+              <span className="legend-dot red" /> Active Intrusion Blip
+            </div>
+            <div className="legend-item">
+              <span className="legend-dot gray" /> Standby / Maintenance
+            </div>
+          </div>
+        </section>
+
+        {/* Right: Selected Sector Detail Panel */}
+        <section className="panel zone-detail-card">
+          <div className="panel-heading">
+            <div>
+              <span className="eyebrow">{selectedZoneData.heading}</span>
+              <h3>{selectedZoneData.label}</h3>
+              <p>{selectedZoneData.note}</p>
+            </div>
+            <div className="panel-heading-actions">
+              <button
+                type="button"
+                className={`btn btn-sm ${sectorArmed[selectedZoneData.name] ? 'btn-primary' : 'btn-outline'}`}
+                onClick={() => toggleSectorArmed(selectedZoneData.name)}
+                title="Arm or bypass this specific perimeter sector"
+              >
+                <Power size={14} />
+                {sectorArmed[selectedZoneData.name] ? 'Sector Armed' : 'Bypassed'}
+              </button>
+            </div>
+          </div>
+
+          <div className="zone-spec-grid">
+            <div className="spec-box">
+              <span className="spec-label">Assigned Sensor</span>
+              <strong>{selectedZoneData.sensorId}</strong>
+              <span className="spec-sub">
+                Range: {sectorSensitivities[selectedZoneData.name]} meters
+              </span>
+            </div>
+            <div className="spec-box">
+              <span className="spec-label">Perimeter Span</span>
+              <strong>{selectedZoneData.perimeterLength}</strong>
+              <span className="spec-sub">Fenced Boundary</span>
+            </div>
+            <div className="spec-box">
+              <span className="spec-label">Protected Crop</span>
+              <strong>{selectedZoneData.crop}</strong>
+              <span className="spec-sub">High-yield zone</span>
+            </div>
+            <div className="spec-box">
+              <span className="spec-label">Device connection</span>
+              <strong>{selectedZoneData.lastPing}</strong>
+              <span className="spec-sub">Status: Waiting for ESP32 data</span>
+            </div>
+          </div>
+
+          {/* Sector Sensitivity Adjustment Slider */}
+          <div className="sector-sensitivity-control">
+            <div className="slider-heading">
+              <label htmlFor="sector-range">
+                <Sliders size={15} /> Sector Motion Sensitivity
+              </label>
+              <strong>{sectorSensitivities[selectedZoneData.name]}m Radius</strong>
+            </div>
+            <input
+              id="sector-range"
+              type="range"
+              min="4"
+              max="14"
+              step="1"
+              value={sectorSensitivities[selectedZoneData.name]}
+              onChange={(e) =>
+                handleSensitivityChange(selectedZoneData.name, e.target.value)
+              }
+              className="intensity-slider"
+            />
+            <div className="slider-ends">
+              <span>Short (4m · Small pests)</span>
+              <span>Medium (8m)</span>
+              <span>Long (14m · Large animals)</span>
+            </div>
+          </div>
+
+          {/* Quick Zone Test Buttons */}
+          <div className="zone-test-actions">
+            <p className="no-events-note">Hardware tests are disabled until the physical ESP32 is connected.</p>
+            {/* Physical actuator test controls will be enabled after firmware integration. */}
+            <div hidden>
+            <button
+              type="button"
+              className="btn btn-outline btn-sm flex-1"
+              onClick={() => onTriggerZoneTest(selectedZoneData.name, 'buzzer')}
+            >
+              <Volume2 size={16} /> Test Siren Pulse
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline btn-sm flex-1"
+              onClick={() => onTriggerZoneTest(selectedZoneData.name, 'light')}
+            >
+              <Lightbulb size={16} /> Flash Strobe
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary btn-sm flex-1"
+              onClick={() => onSimulateDetection(selectedZoneData.name)}
+            >
+              <Plus size={16} /> Simulate Intrusion
+            </button>
+            </div>
+          </div>
+
+          {/* Activity on this sector */}
+          <div className="zone-history-feed">
+            <h4>Recent Intrusions on {selectedZoneData.name} Boundary</h4>
+            {selectedZoneEvents.length === 0 ? (
+              <p className="no-events-note">No motion detections logged for this sector.</p>
+            ) : (
+              <div className="zone-event-pills">
+                {selectedZoneEvents.slice(0, 3).map((evt) => (
+                  <div key={evt.id} className="zone-event-pill">
+                    <div className="zep-left">
+                      <span className={`zep-dot ${evt.severity}`} />
+                      <strong>{evt.animal}</strong>
+                      <span className="zep-time">
+                        {new Date(evt.time).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                    <span className="zep-action">{evt.deterrentAction || 'Acoustic pulse'}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+
+      {/* 4 Interactive Zone Cards */}
+      <section className="direction-section">
+        <div className="section-heading">
+          <h2>Perimeter Boundary Sectors</h2>
+          <p>
+            Select a sector below to focus your radar view, calibrate sensitivity, or test deterrents.
+          </p>
+        </div>
+
+        <div className="direction-grid">
+          {INITIAL_ZONES.map((zone) => {
+            const latest = latestBySide[zone.name];
+            const isAlert = latest?.status === 'New';
+            const isSelected = selectedZoneData.name === zone.name;
+            const isArmed = sectorArmed[zone.name];
+
+            return (
+              <button
+                key={zone.name}
+                type="button"
+                className={`direction-card ${isAlert ? 'is-alert' : ''} ${
+                  isSelected ? 'is-selected' : ''
+                } ${!isArmed ? 'is-bypassed' : ''}`}
+                onClick={() => setSelectedZone(zone.name)}
+              >
+                <div className="direction-compass" aria-hidden="true">
+                  <Compass size={18} />
+                </div>
+                <div className="direction-copy">
+                  <strong>{zone.name} Sector</strong>
+                  <span>{zone.note}</span>
+                </div>
+                <div className="direction-status-row">
+                  <span className={`zone-status ${isAlert ? 'zone-status-alert' : ''}`}>
+                    <i />
+                    {isAlert ? 'Motion Alert' : isArmed ? 'Secure' : 'Bypassed'}
+                  </span>
+                  <span className="zone-range-badge">
+                    {sectorSensitivities[zone.name]}m
+                  </span>
+                </div>
+                <p className="direction-meta">
+                  {latest
+                    ? `${latest.animal} · ${formatTimeAgo(latest.time)}`
+                    : 'No recent activity'}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function formatTimeAgo(date) {
+  const diffMs = Date.now() - new Date(date).getTime();
+  const minutes = Math.max(0, Math.floor(diffMs / 60000));
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
