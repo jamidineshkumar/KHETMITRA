@@ -118,9 +118,6 @@ export default function App() {
       setAuthChecked(true);
       if (data.session && data.session.user?.email_confirmed_at) {
         setActiveUserEmail(data.session.user.email || '');
-      } else if (data.session) {
-        await supabase.auth.signOut();
-        setSession(null);
       }
     });
 
@@ -440,3 +437,4 @@ export default function App() {
     </div>
   );
 }
+
