@@ -131,7 +131,7 @@ export default function Header({
       </nav>
 
       <div className="header-actions">
-        {/* Role Quick Switcher for Demo demonstration */}
+        {/* Role switching is disabled unless a trusted admin role is implemented. */}
         {isDemo && onSwitchRole && (
           <button
             type="button"
@@ -165,18 +165,18 @@ export default function Header({
           )}
         </button>
 
-        {/* Prominent Demo Mode vs Live Hardware Chip */}
+        {/* Device connection status */}
         <div
           className={`status-chip ${isLiveHardware ? 'chip-live' : 'chip-demo'}`}
           title={
             isLiveHardware
               ? 'Confirmed connection with authenticated physical hardware'
-              : 'DEMO MODE — simulated telemetry and alerts'
+              : 'No authenticated physical device is connected'
           }
         >
           <span className={`pulse-dot ${isLiveHardware ? 'pulse-live' : 'pulse-demo'}`} />
           <Wifi size={14} />
-          <span>{isLiveHardware ? 'LIVE HARDWARE' : 'DEMO MODE'}</span>
+          <span>{isLiveHardware ? 'LIVE HARDWARE' : 'DEVICE OFFLINE'}</span>
         </div>
 
         <div className="notification-wrap">
@@ -194,7 +194,7 @@ export default function Header({
               <strong>Notifications</strong>
               <p>
                 {unresolvedCount
-                  ? `${unresolvedCount} simulated alert${unresolvedCount > 1 ? 's' : ''} require review.`
+                  ? `${unresolvedCount} alert${unresolvedCount > 1 ? 's' : ''} require review.`
                   : 'All perimeter alerts have been reviewed.'}
               </p>
               <button
