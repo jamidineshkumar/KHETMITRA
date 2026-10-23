@@ -1,10 +1,5 @@
 import React, { useState } from 'react';
 import {
-  UserRound,
-  ExternalLink,
-  Instagram,
-  Github,
-  Linkedin,
   Settings,
   Radio,
   Bell,
@@ -16,29 +11,25 @@ import {
   ShieldCheck,
   Database,
   Cloud,
+  RefreshCw,
+  Download,
   Info,
+  Sparkles,
+  Code2,
 } from 'lucide-react';
 import { hasSupabaseConfig } from '../supabase';
+import { checkSupabaseHealth } from '../services/supabaseService';
 
 export default function SettingsTab({
-  developerProfile,
-  onSaveDeveloperProfile,
   farmProfile,
   onSaveFarmProfile,
   notificationSettings,
   onSaveNotificationSettings,
   onResetSimulatedData,
+  onOpenDinuvoxModal,
   isLiveHardware,
   userEmail,
 }) {
-  // Local state for developer profile
-  const [devName, setDevName] = useState(developerProfile.name || 'App Developer');
-  const [devBio, setDevBio] = useState(developerProfile.bio || 'KhetMitra lead engineer & IoT developer');
-  const [devPhoto, setDevPhoto] = useState(developerProfile.photo || '');
-  const [devLinkedIn, setDevLinkedIn] = useState(developerProfile.linkedin || '');
-  const [devInstagram, setDevInstagram] = useState(developerProfile.instagram || '');
-  const [devGithub, setDevGithub] = useState(developerProfile.github || '');
-
   // Local state for farm profile
   const [farmName, setFarmName] = useState(farmProfile.name || 'Green Valley Agricultural Plots');
   const [farmArea, setFarmArea] = useState(farmProfile.area || '5.5 Acres');
@@ -50,19 +41,8 @@ export default function SettingsTab({
   const [desktopNotify, setDesktopNotify] = useState(Boolean(notificationSettings.desktopNotify));
 
   const [toastMessage, setToastMessage] = useState('');
-
-  function handleSaveDev() {
-    onSaveDeveloperProfile({
-      name: devName,
-      bio: devBio,
-      photo: devPhoto,
-      linkedin: devLinkedIn,
-      instagram: devInstagram,
-      github: devGithub,
-    });
-    setToastMessage('Developer profile saved and persisted successfully!');
-    setTimeout(() => setToastMessage(''), 3000);
-  }
+  const [dbTesting, setDbTesting] = useState(false);
+  const [dbResult, setDbResult] = useState(null);
 
   function handleSaveFarm() {
     onSaveFarmProfile({
@@ -84,15 +64,40 @@ export default function SettingsTab({
     setTimeout(() => setToastMessage(''), 3000);
   }
 
+  async function handleTestDbConnection() {
+    setDbTesting(true);
+    setDbResult(null);
+    const res = await checkSupabaseHealth();
+    setDbTesting(false);
+    setDbResult(res);
+  }
+
+  function exportBackupJSON() {
+    const backup = {
+      farmProfile,
+      notificationSettings,
+      exportedAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `KhetMitra_Settings_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setToastMessage('Settings exported to JSON file');
+  }
+
   return (
     <div className="settings-container page-section">
       <div className="page-heading">
         <div>
-          <span className="eyebrow">Customization & Profiles</span>
-          <h1>System Settings & Developer Profile</h1>
+          <span className="eyebrow">Customization & Configuration</span>
+          <h1>System Settings & Preferences</h1>
           <p>
-            Configure agricultural field parameters, developer credentials, IoT connectivity, and
-            notification preferences.
+            Configure agricultural field parameters, IoT connectivity status, and notification
+            rules.
           </p>
         </div>
       </div>
@@ -166,175 +171,39 @@ export default function SettingsTab({
           </form>
         </section>
 
-        {/* Developer Profile (Persisted properly!) */}
-        <section className="panel settings-panel developer-panel">
-          <div className="panel-heading">
-            <div>
-              <h3>Application Developer</h3>
-              <p>Project architect & student profile credentials</p>
+        {/* Unique Animated Dinuvox Creator Card (Kept only inside Settings!) */}
+        <section className="panel settings-panel dinuvox-settings-card">
+          <div className="dinuvox-shimmer-border" />
+          <div className="dinuvox-card-content">
+            <div className="dinuvox-pill-badge">
+              <Sparkles size={14} className="sparkle-anim" />
+              <span>Lead Architect & Creator</span>
             </div>
-            <UserRound size={20} className="text-leaf" />
-          </div>
+            <h3 className="dinuvox-heading-title">Dinuvox</h3>
+            <p className="dinuvox-card-desc">
+              Lead Full-Stack, IoT Hardware & UI/UX Systems Architect. Architect and engineer of the
+              KhetMitra smart agricultural defense platform.
+            </p>
 
-          <div className="developer-preview">
-            {devPhoto ? (
-              <img
-                src={devPhoto}
-                alt="Developer Profile Avatar"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            ) : (
-              <div className="developer-placeholder">
-                <UserRound size={32} />
-              </div>
-            )}
-            <div>
-              <strong>{devName || 'App Developer'}</strong>
-              <p>{devBio || 'Lead Full-Stack & IoT Developer'}</p>
-            </div>
-          </div>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSaveDev();
-            }}
-          >
-            <label className="settings-field">
-              Display Name
-              <input
-                value={devName}
-                onChange={(e) => setDevName(e.target.value)}
-                placeholder="Your Full Name"
-                required
-              />
-            </label>
-
-            <label className="settings-field">
-              Profile Photo URL
-              <input
-                type="url"
-                value={devPhoto}
-                onChange={(e) => setDevPhoto(e.target.value)}
-                placeholder="https://example.com/photo.jpg"
-              />
-            </label>
-
-            <label className="settings-field">
-              Role & Short Bio
-              <input
-                value={devBio}
-                onChange={(e) => setDevBio(e.target.value)}
-                placeholder="e.g. Electronics & Computer Engineering Student"
-              />
-            </label>
-
-            <label className="settings-field">
-              LinkedIn Profile URL
-              <input
-                type="url"
-                value={devLinkedIn}
-                onChange={(e) => setDevLinkedIn(e.target.value)}
-                placeholder="https://linkedin.com/in/yourprofile"
-              />
-            </label>
-
-            <label className="settings-field">
-              Instagram Profile URL
-              <input
-                type="url"
-                value={devInstagram}
-                onChange={(e) => setDevInstagram(e.target.value)}
-                placeholder="https://instagram.com/yourhandle"
-              />
-            </label>
-
-            <label className="settings-field">
-              GitHub Profile URL
-              <input
-                type="url"
-                value={devGithub}
-                onChange={(e) => setDevGithub(e.target.value)}
-                placeholder="https://github.com/yourusername"
-              />
-            </label>
-
-            <button type="submit" className="btn btn-primary full-btn mt-3">
-              <Save size={16} /> Save Developer Profile
-            </button>
-          </form>
-
-          <div className="developer-links">
-            {devLinkedIn && (
-              <a href={devLinkedIn} target="_blank" rel="noreferrer">
-                <Linkedin size={15} /> LinkedIn
-              </a>
-            )}
-            {devInstagram && (
-              <a href={devInstagram} target="_blank" rel="noreferrer">
-                <Instagram size={15} /> Instagram
-              </a>
-            )}
-            {devGithub && (
-              <a href={devGithub} target="_blank" rel="noreferrer">
-                <Github size={15} /> GitHub
-              </a>
-            )}
-          </div>
-        </section>
-
-        {/* IoT Gateway & Supabase Configuration */}
-        <section className="panel settings-panel">
-          <div className="panel-heading">
-            <div>
-              <h3>Backend & Database Connection</h3>
-              <p>Supabase cloud synchronization and IoT gateway configuration</p>
-            </div>
-            <Database size={20} className="text-leaf" />
-          </div>
-
-          <div className="settings-note">
-            <Cloud size={19} />
-            <div>
-              <strong>
-                {hasSupabaseConfig ? 'Supabase Connected' : 'Supabase In Standby Mode'}
-              </strong>
-              <p>
-                {hasSupabaseConfig
-                  ? 'Authenticated via .env.local configuration. Realtime tables can synchronize physical ESP32 telemetry.'
-                  : 'Supabase credentials are not detected in .env.local. The application is running in complete local offline demo mode.'}
-              </p>
-            </div>
-          </div>
-
-          <div className="health-list">
-            <div className="health-row">
-              <div className="health-icon">
-                <Radio size={18} />
-              </div>
-              <div className="health-label">ESP32 Hardware Mode</div>
-              <span className="health-value">
-                {isLiveHardware ? 'Physical WiFi Node' : 'Simulated Sandbox'}
+            <div className="dinuvox-tag-row">
+              <span className="dinuvox-mini-tag">
+                <Code2 size={12} /> React 18 + Vite
+              </span>
+              <span className="dinuvox-mini-tag">
+                <Radio size={12} /> ESP32 FreeRTOS
+              </span>
+              <span className="dinuvox-mini-tag">
+                <Database size={12} /> Supabase Realtime
               </span>
             </div>
 
-            <div className="health-row">
-              <div className="health-icon">
-                <Activity size={18} />
-              </div>
-              <div className="health-label">Telemetry Heartbeat</div>
-              <span className="health-value">Every 10 seconds</span>
-            </div>
-
-            <div className="health-row">
-              <div className="health-icon">
-                <Database size={18} />
-              </div>
-              <div className="health-label">Logged In User</div>
-              <span className="health-value">{userEmail || 'demo@khetmitra.local'}</span>
-            </div>
+            <button
+              type="button"
+              className="dinuvox-action-btn"
+              onClick={onOpenDinuvoxModal}
+            >
+              <Sparkles size={16} /> Reveal Dinuvox Credentials
+            </button>
           </div>
         </section>
 
@@ -343,7 +212,7 @@ export default function SettingsTab({
           <div className="panel-heading">
             <div>
               <h3>Alert & Notification Preferences</h3>
-              <p>Customize user interface auditory alerts and simulation resets</p>
+              <p>Customize user interface auditory alerts and notification rules</p>
             </div>
             <Bell size={20} className="text-leaf" />
           </div>
@@ -382,18 +251,109 @@ export default function SettingsTab({
             </div>
           </div>
 
-          <button
-            type="button"
-            className="btn btn-outline full-btn mt-3"
-            onClick={handleSaveNotify}
-          >
-            <Save size={16} /> Save Notification Settings
-          </button>
+          <div className="control-btn-row mt-3">
+            <button
+              type="button"
+              className="btn btn-primary flex-1"
+              onClick={handleSaveNotify}
+            >
+              <Save size={16} /> Save Preferences
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline flex-1"
+              onClick={exportBackupJSON}
+            >
+              <Download size={16} /> Backup Settings JSON
+            </button>
+          </div>
+        </section>
 
-          <hr className="divider-hr" />
+        {/* IoT Gateway & Supabase Configuration */}
+        <section className="panel settings-panel">
+          <div className="panel-heading">
+            <div>
+              <h3>Backend & Database Connection</h3>
+              <p>Supabase cloud synchronization and IoT gateway configuration</p>
+            </div>
+            <Database size={20} className="text-leaf" />
+          </div>
+
+          <div className="settings-note">
+            <Cloud size={19} />
+            <div>
+              <strong>
+                {hasSupabaseConfig ? 'Supabase Configuration Detected' : 'Supabase In Standby Mode'}
+              </strong>
+              <p>
+                {hasSupabaseConfig
+                  ? 'Authenticated via .env.local configuration. Realtime tables can synchronize physical ESP32 telemetry.'
+                  : 'Supabase credentials are not detected in .env.local. The application is running in complete local offline demo mode.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="health-list">
+            <div className="health-row">
+              <div className="health-icon">
+                <Radio size={18} />
+              </div>
+              <div className="health-label">ESP32 Hardware Mode</div>
+              <span className="health-value">
+                {isLiveHardware ? 'Physical WiFi Node' : 'Simulated Sandbox'}
+              </span>
+            </div>
+
+            <div className="health-row">
+              <div className="health-icon">
+                <Activity size={18} />
+              </div>
+              <div className="health-label">Telemetry Heartbeat</div>
+              <span className="health-value">Every 10 seconds</span>
+            </div>
+
+            <div className="health-row">
+              <div className="health-icon">
+                <Database size={18} />
+              </div>
+              <div className="health-label">Logged In User</div>
+              <span className="health-value">{userEmail || 'demo@khetmitra.local'}</span>
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <button
+              type="button"
+              className="btn btn-outline full-btn"
+              onClick={handleTestDbConnection}
+              disabled={dbTesting}
+            >
+              <RefreshCw size={16} className={dbTesting ? 'spin-icon' : ''} />
+              {dbTesting ? 'Testing Connection…' : 'Test Supabase Connection'}
+            </button>
+            {dbResult && (
+              <div
+                className={`form-message mt-3 ${dbResult.ok ? 'success' : 'error'}`}
+                role="status"
+              >
+                {dbResult.ok ? <Check size={16} /> : <Info size={16} />}
+                <span>{dbResult.message}</span>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Prototype Reset */}
+        <section className="panel settings-panel">
+          <div className="panel-heading">
+            <div>
+              <h3>Prototype Maintenance</h3>
+              <p>Reset mock data and reinitialize factory states</p>
+            </div>
+            <RotateCcw size={20} className="text-danger" />
+          </div>
 
           <div className="reset-section">
-            <h4>Prototype Data Reset</h4>
             <p>
               Restore initial simulated detection events and default sensor states for clean
               demonstration.

@@ -11,6 +11,10 @@ import {
   SlidersHorizontal,
   Clock,
   RotateCcw,
+  Moon,
+  Sun,
+  Radio,
+  CheckCircle2,
   AlertTriangle,
   Info,
 } from 'lucide-react';
@@ -36,6 +40,8 @@ export default function ControlsTab({
   isLiveHardware,
 }) {
   const [panicCountdown, setPanicCountdown] = useState(0);
+  const [nightModeAuto, setNightModeAuto] = useState(true);
+  const [soundProfile, setSoundProfile] = useState('swept_siren'); // 'swept_siren', 'horn', 'ultrasonic'
 
   function handlePanicAlarm() {
     onTriggerAlarm();
@@ -58,8 +64,8 @@ export default function ControlsTab({
           <span className="eyebrow">Acoustic & Optical Countermeasures</span>
           <h1>Deterrent & Device Controls</h1>
           <p>
-            Remotely calibrate siren volumes, scarecrow lighting brightness, and autonomous field
-            response rules.
+            Remotely calibrate siren volumes, scarecrow lighting brightness, frequency patterns, and
+            autonomous field response rules.
           </p>
         </div>
         <div className="page-heading-actions">
@@ -228,7 +234,21 @@ export default function ControlsTab({
             <span>Max (110 dB)</span>
           </div>
 
-          <div className="control-btn-row">
+          <div className="frequency-selector-row">
+            <label htmlFor="sound-pattern-select">Acoustic Tone Pattern:</label>
+            <select
+              id="sound-pattern-select"
+              value={soundProfile}
+              onChange={(e) => setSoundProfile(e.target.value)}
+              className="filter-select"
+            >
+              <option value="swept_siren">Swept Piezo Siren (2.4–3.6 kHz)</option>
+              <option value="horn">Pulsed Distress Horn (1.8 kHz)</option>
+              <option value="ultrasonic">High-Frequency Pest Warble (3.8 kHz)</option>
+            </select>
+          </div>
+
+          <div className="control-btn-row mt-3">
             <button
               className="btn btn-outline full-btn"
               type="button"
@@ -238,8 +258,8 @@ export default function ControlsTab({
             </button>
           </div>
           <p className="control-footnote">
-            ESP32 PWM duty cycle adjusts piezo frequency between 2.4kHz and 4.8kHz to prevent animal
-            habituation.
+            ESP32 PWM duty cycle adjusts frequency between 2.4kHz and 4.8kHz to prevent wild animals
+            from becoming accustomed to steady sounds.
           </p>
         </article>
 
@@ -286,7 +306,12 @@ export default function ControlsTab({
             <span>High Intensity</span>
           </div>
 
-          <div className="control-btn-row">
+          <div className="frequency-selector-row">
+            <label>Strobe Sequence:</label>
+            <span className="frequency-badge">Fast Disorienting Triple-Flash (10 Hz)</span>
+          </div>
+
+          <div className="control-btn-row mt-3">
             <button
               className="btn btn-outline full-btn"
               type="button"
@@ -300,14 +325,14 @@ export default function ControlsTab({
           </p>
         </article>
 
-        {/* Automatic Deterrent Rules */}
+        {/* Automatic Deterrent Rules & Dusk-to-Dawn Automation */}
         <article className="control-card control-card-wide">
           <div className="control-card-head">
             <div className="control-icon">
               <Zap size={24} />
             </div>
             <div>
-              <h3>Autonomous Protection Logic</h3>
+              <h3>Autonomous Protection Logic & Dusk-to-Dawn Scheduling</h3>
               <p>ESP32 edge automation rules (runs even during network outages)</p>
             </div>
             <label className="switch-label">
@@ -340,14 +365,23 @@ export default function ControlsTab({
             </div>
 
             <div className="rule-box">
-              <label htmlFor="cooldown-select">
-                <RotateCcw size={16} /> Sensor Retrigger Cooldown
+              <label htmlFor="night-mode-toggle">
+                <Moon size={16} /> Dusk-to-Dawn Auto Armed
               </label>
-              <select id="cooldown-select" className="filter-select" defaultValue={15}>
-                <option value={10}>10 Seconds Cooldown</option>
-                <option value={15}>15 Seconds Cooldown</option>
-                <option value={30}>30 Seconds Cooldown</option>
-              </select>
+              <div className="night-mode-wrap">
+                <span className="night-mode-sub">
+                  Automatically Arms when ambient light drops below 50 Lux (via GPIO 34 LDR)
+                </span>
+                <label className="switch-label">
+                  <input
+                    id="night-mode-toggle"
+                    type="checkbox"
+                    checked={nightModeAuto}
+                    onChange={(e) => setNightModeAuto(e.target.checked)}
+                  />
+                  <span className="switch-ui" />
+                </label>
+              </div>
             </div>
           </div>
 

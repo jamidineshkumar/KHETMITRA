@@ -12,6 +12,8 @@ import {
   Check,
   Layers,
   Activity,
+  Sliders,
+  Power,
   Info,
 } from 'lucide-react';
 import { INITIAL_ZONES } from '../constants/farmData';
@@ -26,6 +28,18 @@ export default function LiveMonitoringTab({
   lightOn,
 }) {
   const [activeTab, setActiveTab] = useState('radar'); // 'radar' or 'map'
+  const [sectorSensitivities, setSectorSensitivities] = useState({
+    North: 8,
+    East: 12,
+    South: 7,
+    West: 6,
+  });
+  const [sectorArmed, setSectorArmed] = useState({
+    North: true,
+    East: true,
+    South: true,
+    West: true,
+  });
 
   // Latest event per zone
   const latestBySide = Object.fromEntries(
@@ -39,6 +53,14 @@ export default function LiveMonitoringTab({
     INITIAL_ZONES.find((z) => z.name === selectedZone) || INITIAL_ZONES[0];
   const selectedZoneEvents = events.filter((e) => e.side === selectedZoneData.name);
 
+  function handleSensitivityChange(zoneName, val) {
+    setSectorSensitivities((prev) => ({ ...prev, [zoneName]: Number(val) }));
+  }
+
+  function toggleSectorArmed(zoneName) {
+    setSectorArmed((prev) => ({ ...prev, [zoneName]: !prev[zoneName] }));
+  }
+
   return (
     <div className="live-monitoring-container page-section">
       <div className="page-heading">
@@ -47,7 +69,7 @@ export default function LiveMonitoringTab({
           <h1>Live Field Monitoring</h1>
           <p>
             Continuous 360° directional scanning across North, East, South, and West field
-            boundaries.
+            boundaries with sector-level sensitivity calibration.
           </p>
         </div>
         <div className="page-heading-actions">
@@ -57,7 +79,7 @@ export default function LiveMonitoringTab({
               className={`btn btn-sm ${activeTab === 'radar' ? 'btn-primary' : 'btn-outline'}`}
               onClick={() => setActiveTab('radar')}
             >
-              <Radar size={16} /> Radar View
+              <Radar size={16} /> Radar Sweep
             </button>
             <button
               type="button"
@@ -83,11 +105,11 @@ export default function LiveMonitoringTab({
         <section className="panel radar-display-card">
           <div className="panel-heading">
             <div>
-              <h3>Field Radar Sector</h3>
+              <h3>Field Radar Screen</h3>
               <p>Visual radar sweep with detected motion hotspots</p>
             </div>
             <span className="status-tag status-demo">
-              <span className="pulse-dot" /> Continuous Sweep
+              <span className="pulse-dot" /> 360° Continuous Sweep
             </span>
           </div>
 
@@ -101,7 +123,7 @@ export default function LiveMonitoringTab({
               {/* Direction Labels & Clickable Sector Zones */}
               <button
                 type="button"
-                className={`radar-sector-label north ${selectedZoneData.name === 'North' ? 'active-zone' : ''}`}
+                className={`radar-sector-label north ${selectedZoneData.name === 'North' ? 'active-zone' : ''} ${!sectorArmed.North ? 'sector-muted' : ''}`}
                 onClick={() => setSelectedZone('North')}
               >
                 <span>NORTH (0°)</span>
@@ -110,7 +132,7 @@ export default function LiveMonitoringTab({
 
               <button
                 type="button"
-                className={`radar-sector-label east ${selectedZoneData.name === 'East' ? 'active-zone' : ''}`}
+                className={`radar-sector-label east ${selectedZoneData.name === 'East' ? 'active-zone' : ''} ${!sectorArmed.East ? 'sector-muted' : ''}`}
                 onClick={() => setSelectedZone('East')}
               >
                 <span>EAST (90°)</span>
@@ -119,7 +141,7 @@ export default function LiveMonitoringTab({
 
               <button
                 type="button"
-                className={`radar-sector-label south ${selectedZoneData.name === 'South' ? 'active-zone' : ''}`}
+                className={`radar-sector-label south ${selectedZoneData.name === 'South' ? 'active-zone' : ''} ${!sectorArmed.South ? 'sector-muted' : ''}`}
                 onClick={() => setSelectedZone('South')}
               >
                 <span>SOUTH (180°)</span>
@@ -128,7 +150,7 @@ export default function LiveMonitoringTab({
 
               <button
                 type="button"
-                className={`radar-sector-label west ${selectedZoneData.name === 'West' ? 'active-zone' : ''}`}
+                className={`radar-sector-label west ${selectedZoneData.name === 'West' ? 'active-zone' : ''} ${!sectorArmed.West ? 'sector-muted' : ''}`}
                 onClick={() => setSelectedZone('West')}
               >
                 <span>WEST (270°)</span>
@@ -182,10 +204,17 @@ export default function LiveMonitoringTab({
             </div>
           )}
 
-          <p className="radar-caption">
-            Click on any sector marker (North, East, South, West) to inspect sensor sensitivity,
-            boundary length, and specific deterrent records.
-          </p>
+          <div className="radar-legend">
+            <div className="legend-item">
+              <span className="legend-dot green" /> Secure Boundary
+            </div>
+            <div className="legend-item">
+              <span className="legend-dot red" /> Active Intrusion Blip
+            </div>
+            <div className="legend-item">
+              <span className="legend-dot gray" /> Standby / Maintenance
+            </div>
+          </div>
         </section>
 
         {/* Right: Selected Sector Detail Panel */}
@@ -196,24 +225,26 @@ export default function LiveMonitoringTab({
               <h3>{selectedZoneData.label}</h3>
               <p>{selectedZoneData.note}</p>
             </div>
-            <span
-              className={`status-pill ${
-                latestBySide[selectedZoneData.name]?.status === 'New'
-                  ? 'mode-alert'
-                  : 'mode-armed'
-              }`}
-            >
-              {latestBySide[selectedZoneData.name]?.status === 'New'
-                ? 'ALERT DETECTED'
-                : 'SECTOR SECURE'}
-            </span>
+            <div className="panel-heading-actions">
+              <button
+                type="button"
+                className={`btn btn-sm ${sectorArmed[selectedZoneData.name] ? 'btn-primary' : 'btn-outline'}`}
+                onClick={() => toggleSectorArmed(selectedZoneData.name)}
+                title="Arm or bypass this specific perimeter sector"
+              >
+                <Power size={14} />
+                {sectorArmed[selectedZoneData.name] ? 'Sector Armed' : 'Bypassed'}
+              </button>
+            </div>
           </div>
 
           <div className="zone-spec-grid">
             <div className="spec-box">
               <span className="spec-label">Assigned Sensor</span>
               <strong>{selectedZoneData.sensorId}</strong>
-              <span className="spec-sub">{selectedZoneData.sensitivity}</span>
+              <span className="spec-sub">
+                Range: {sectorSensitivities[selectedZoneData.name]} meters
+              </span>
             </div>
             <div className="spec-box">
               <span className="spec-label">Perimeter Span</span>
@@ -228,7 +259,34 @@ export default function LiveMonitoringTab({
             <div className="spec-box">
               <span className="spec-label">Heartbeat Ping</span>
               <strong>{selectedZoneData.lastPing}</strong>
-              <span className="spec-sub">Status: {selectedZoneData.sensorStatus}</span>
+              <span className="spec-sub">Status: {sectorArmed[selectedZoneData.name] ? 'Active' : 'Standby'}</span>
+            </div>
+          </div>
+
+          {/* Sector Sensitivity Adjustment Slider */}
+          <div className="sector-sensitivity-control">
+            <div className="slider-heading">
+              <label htmlFor="sector-range">
+                <Sliders size={15} /> Sector Motion Sensitivity
+              </label>
+              <strong>{sectorSensitivities[selectedZoneData.name]}m Radius</strong>
+            </div>
+            <input
+              id="sector-range"
+              type="range"
+              min="4"
+              max="14"
+              step="1"
+              value={sectorSensitivities[selectedZoneData.name]}
+              onChange={(e) =>
+                handleSensitivityChange(selectedZoneData.name, e.target.value)
+              }
+              className="intensity-slider"
+            />
+            <div className="slider-ends">
+              <span>Short (4m · Small pests)</span>
+              <span>Medium (8m)</span>
+              <span>Long (14m · Large animals)</span>
             </div>
           </div>
 
@@ -239,14 +297,14 @@ export default function LiveMonitoringTab({
               className="btn btn-outline btn-sm flex-1"
               onClick={() => onTriggerZoneTest(selectedZoneData.name, 'buzzer')}
             >
-              <Volume2 size={16} /> Test Sector Siren
+              <Volume2 size={16} /> Test Siren Pulse
             </button>
             <button
               type="button"
               className="btn btn-outline btn-sm flex-1"
               onClick={() => onTriggerZoneTest(selectedZoneData.name, 'light')}
             >
-              <Lightbulb size={16} /> Flash Sector Strobe
+              <Lightbulb size={16} /> Flash Strobe
             </button>
             <button
               type="button"
@@ -290,7 +348,7 @@ export default function LiveMonitoringTab({
         <div className="section-heading">
           <h2>Perimeter Boundary Sectors</h2>
           <p>
-            Select a sector below to focus your radar view, inspect sensor telemetry, or test deterrents.
+            Select a sector below to focus your radar view, calibrate sensitivity, or test deterrents.
           </p>
         </div>
 
@@ -299,6 +357,7 @@ export default function LiveMonitoringTab({
             const latest = latestBySide[zone.name];
             const isAlert = latest?.status === 'New';
             const isSelected = selectedZoneData.name === zone.name;
+            const isArmed = sectorArmed[zone.name];
 
             return (
               <button
@@ -306,7 +365,7 @@ export default function LiveMonitoringTab({
                 type="button"
                 className={`direction-card ${isAlert ? 'is-alert' : ''} ${
                   isSelected ? 'is-selected' : ''
-                }`}
+                } ${!isArmed ? 'is-bypassed' : ''}`}
                 onClick={() => setSelectedZone(zone.name)}
               >
                 <div className="direction-compass" aria-hidden="true">
@@ -316,10 +375,15 @@ export default function LiveMonitoringTab({
                   <strong>{zone.name} Sector</strong>
                   <span>{zone.note}</span>
                 </div>
-                <span className={`zone-status ${isAlert ? 'zone-status-alert' : ''}`}>
-                  <i />
-                  {isAlert ? 'Motion Alert' : 'Secure'}
-                </span>
+                <div className="direction-status-row">
+                  <span className={`zone-status ${isAlert ? 'zone-status-alert' : ''}`}>
+                    <i />
+                    {isAlert ? 'Motion Alert' : isArmed ? 'Secure' : 'Bypassed'}
+                  </span>
+                  <span className="zone-range-badge">
+                    {sectorSensitivities[zone.name]}m
+                  </span>
+                </div>
                 <p className="direction-meta">
                   {latest
                     ? `${latest.animal} · ${formatTimeAgo(latest.time)}`

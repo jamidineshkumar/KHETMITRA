@@ -434,7 +434,7 @@ export default function OverviewTab({
           </div>
         ) : (
           <div className="events-list">
-            <div className="events-head">
+            <div className="events-head-6col">
               <span>Detection / Threat</span>
               <span>Direction</span>
               <span>Timestamp</span>
@@ -443,7 +443,7 @@ export default function OverviewTab({
               <span>Action</span>
             </div>
             {events.slice(0, 4).map((evt) => (
-              <div className="event-row" key={evt.id}>
+              <div className="event-row-6col" key={evt.id}>
                 <div className="event-name">
                   <div className={`event-symbol ${evt.severity}`}>
                     <AlertTriangle size={17} />

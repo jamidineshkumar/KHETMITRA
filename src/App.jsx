@@ -8,19 +8,21 @@ import {
   INITIAL_ACTUATORS,
   WILDLIFE_PRESETS,
 } from './constants/farmData';
+import {
+  fetchRemoteAlerts,
+  pushAlertToRemote,
+  updateRemoteAlertStatus,
+  subscribeToRealtimeAlerts,
+} from './services/supabaseService';
 
 // Component Imports
 import Header from './components/Header';
 import MobileDock from './components/MobileDock';
 import AuthScreen from './components/AuthScreen';
-import OverviewTab from './components/OverviewTab';
-import LiveMonitoringTab from './components/LiveMonitoringTab';
-import AlertsTab from './components/AlertsTab';
-import DeviceSensorsTab from './components/DeviceSensorsTab';
-import ControlsTab from './components/ControlsTab';
-import HistoryReportsTab from './components/HistoryReportsTab';
-import SettingsTab from './components/SettingsTab';
+import CustomerPortal from './components/CustomerPortal';
+import AdminPortal from './components/AdminPortal';
 import AlertDetailModal from './components/AlertDetailModal';
+import DinuvoxModal from './components/DinuvoxModal';
 
 // Local storage helper
 function getStoredJson(key, fallback) {
@@ -41,7 +43,7 @@ function setStoredJson(key, val) {
 }
 
 // Web Audio API acoustic synthesizer for realistic buzzer sounds
-function playAcousticAlarm(durationSec = 1, frequency = 2800) {
+function playAcousticAlarm(durationSec = 1.2, frequency = 2800) {
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
@@ -51,11 +53,11 @@ function playAcousticAlarm(durationSec = 1, frequency = 2800) {
 
     osc.type = 'sawtooth';
     osc.frequency.setValueAtTime(frequency, ctx.currentTime);
-    // Rapid alternating warble like an agricultural repeller
-    osc.frequency.linearRampToValueAtTime(frequency + 600, ctx.currentTime + durationSec * 0.5);
+    osc.frequency.linearRampToValueAtTime(frequency + 600, ctx.currentTime + durationSec * 0.4);
+    osc.frequency.linearRampToValueAtTime(frequency - 400, ctx.currentTime + durationSec * 0.7);
     osc.frequency.linearRampToValueAtTime(frequency, ctx.currentTime + durationSec);
 
-    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.setValueAtTime(0.09, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durationSec);
 
     osc.connect(gain);
@@ -64,7 +66,7 @@ function playAcousticAlarm(durationSec = 1, frequency = 2800) {
     osc.start();
     osc.stop(ctx.currentTime + durationSec);
   } catch {
-    // Ignore audio autoplay restrictions gracefully
+    // Graceful fallback if audio is autoplay-restricted by browser
   }
 }
 
@@ -73,12 +75,17 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [authChecked, setAuthChecked] = useState(!hasSupabaseConfig);
   const [demo, setDemo] = useState(false);
+  const [userRole, setUserRole] = useState(() => getStoredJson('khetmitra_user_role', 'customer')); // 'customer' or 'admin'
+  const [activeUserEmail, setActiveUserEmail] = useState('');
 
-  // Navigation state (7 tabs)
+  // Navigation state
   const [activeNav, setActiveNav] = useState('Overview');
   const [mobileNav, setMobileNav] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [toast, setToast] = useState('');
+
+  // Dinuvox Profile Modal State
+  const [dinuvoxModalOpen, setDinuvoxModalOpen] = useState(false);
 
   // Core Farm System State
   const [operatingMode, setOperatingMode] = useState('ARMED'); // 'ARMED', 'ALERT', 'DISARMED'
@@ -89,24 +96,24 @@ export default function App() {
 
   // Actuator controls
   const [buzzerOn, setBuzzerOn] = useState(false);
-  const [buzzerIntensity, setBuzzerIntensity] = useState(70);
+  const [buzzerIntensity, setBuzzerIntensity] = useState(75);
   const [lightOn, setLightOn] = useState(false);
-  const [lightIntensity, setLightIntensity] = useState(80);
+  const [lightIntensity, setLightIntensity] = useState(85);
   const [autoProtection, setAutoProtection] = useState(true);
   const [autoDuration, setAutoDuration] = useState(10);
 
   // Heartbeat counter (seconds since last heartbeat)
-  const [espHeartbeatSeconds, setEspHeartbeatSeconds] = useState(4);
+  const [espHeartbeatSeconds, setEspHeartbeatSeconds] = useState(3);
 
-  // Developer & Farm profiles (persisted in localStorage)
-  const [developerProfile, setDeveloperProfile] = useState(() =>
+  // Developer Profile for Dinuvox
+  const [developerProfile] = useState(() =>
     getStoredJson('khetmitra_dev_profile', {
-      name: 'App Developer',
-      bio: 'Lead Full-Stack, IoT & UI/UX Developer',
+      name: 'Dinuvox',
+      bio: 'Lead Full-Stack, IoT & UI/UX Systems Architect. Architect of the KhetMitra agricultural field defense platform.',
       photo: '',
-      linkedin: '',
-      instagram: '',
-      github: '',
+      linkedin: 'https://linkedin.com',
+      instagram: 'https://instagram.com',
+      github: 'https://github.com',
     })
   );
 
@@ -132,7 +139,14 @@ export default function App() {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setAuthChecked(true);
-      if (data.session) setDemo(false);
+      if (data.session) {
+        setDemo(false);
+        const email = data.session.user?.email || '';
+        setActiveUserEmail(email);
+        const role = email.toLowerCase().includes('admin') ? 'admin' : 'customer';
+        setUserRole(role);
+        setStoredJson('khetmitra_user_role', role);
+      }
     });
 
     const {
@@ -140,11 +154,45 @@ export default function App() {
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
       setAuthChecked(true);
-      if (nextSession) setDemo(false);
+      if (nextSession) {
+        setDemo(false);
+        const email = nextSession.user?.email || '';
+        setActiveUserEmail(email);
+        const role = email.toLowerCase().includes('admin') ? 'admin' : 'customer';
+        setUserRole(role);
+        setStoredJson('khetmitra_user_role', role);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Fetch remote alerts if Supabase is connected
+  useEffect(() => {
+    if (!hasSupabaseConfig || !session) return;
+    fetchRemoteAlerts().then((remoteData) => {
+      if (remoteData && remoteData.length > 0) {
+        setEvents(remoteData);
+      }
+    });
+
+    const unsubscribe = subscribeToRealtimeAlerts(
+      (newAlert) => {
+        setEvents((prev) => [newAlert, ...prev]);
+        showToast(`Intrusion Alert: ${newAlert.animal} at ${newAlert.side}!`);
+        if (notificationSettings.soundAlerts) {
+          playAcousticAlarm(2, 3200);
+        }
+      },
+      (updatedRow) => {
+        setEvents((prev) =>
+          prev.map((e) => (e.id === updatedRow.id ? { ...e, status: updatedRow.status } : e))
+        );
+      }
+    );
+
+    return () => unsubscribe();
+  }, [session, notificationSettings.soundAlerts]);
 
   // Heartbeat ticker
   useEffect(() => {
@@ -179,12 +227,42 @@ export default function App() {
     setToast(msg);
   }
 
+  function toggleMasterSound() {
+    setNotificationSettings((prev) => {
+      const next = { ...prev, soundAlerts: !prev.soundAlerts };
+      setStoredJson('khetmitra_notify_settings', next);
+      showToast(next.soundAlerts ? 'Acoustic siren alarms unmuted' : 'Acoustic siren alarms muted');
+      return next;
+    });
+  }
+
+  function handleDemoLogin(email, role) {
+    setDemo(true);
+    setActiveUserEmail(email);
+    setUserRole(role);
+    setStoredJson('khetmitra_user_role', role);
+    setActiveNav('Overview');
+    showToast(
+      role === 'admin'
+        ? 'Signed in to Administrator Hardware Console'
+        : 'Signed in to Customer Farmer Dashboard'
+    );
+  }
+
+  function handleSwitchRole(newRole) {
+    setUserRole(newRole);
+    setStoredJson('khetmitra_user_role', newRole);
+    setActiveNav('Overview');
+    showToast(`Switched view to ${newRole === 'admin' ? 'Admin Console' : 'Customer View'}`);
+  }
+
   async function handleSignOut() {
     if (hasSupabaseConfig && session) {
       await supabase.auth.signOut();
     }
     setSession(null);
     setDemo(false);
+    setActiveUserEmail('');
     setActiveNav('Overview');
   }
 
@@ -202,22 +280,17 @@ export default function App() {
     };
 
     let deterrentResponse = 'Monitored (Threshold normal)';
-    let soundBuzzer = false;
-    let flashLight = false;
 
     if (autoProtection && operatingMode !== 'DISARMED') {
-      soundBuzzer = true;
-      flashLight = true;
-      deterrentResponse = `Autonomous Buzzer (${buzzerIntensity}%) + Strobe (${lightIntensity}%) for ${autoDuration}s`;
+      deterrentResponse = preset.deterrentPreset || `Autonomous Buzzer (${buzzerIntensity}%) + Strobe (${lightIntensity}%) for ${autoDuration}s`;
 
       setBuzzerOn(true);
       setLightOn(true);
 
       if (notificationSettings.soundAlerts) {
-        playAcousticAlarm(1.5, preset.severity === 'high' ? 3200 : 2400);
+        playAcousticAlarm(1.6, preset.soundFrequency || 2800);
       }
 
-      // Auto turn off after duration
       setTimeout(() => {
         setBuzzerOn(false);
         setLightOn(false);
@@ -235,10 +308,11 @@ export default function App() {
       status: 'New',
       deterrentAction: deterrentResponse,
       deterrentSuccess: true,
-      notes: `Simulated intrusion detected on ${chosenSide} perimeter. Countermeasures deployed automatically.`,
+      notes: `${preset.threatDesc} Detected on ${chosenSide} sector boundary. AI confidence score: ${preset.confidence || '92%'}.`,
     };
 
     setEvents((prev) => [newEvent, ...prev]);
+    pushAlertToRemote(newEvent);
     showToast(`Intrusion detected: ${preset.name} on ${chosenSide} sector!`);
   }
 
@@ -246,6 +320,7 @@ export default function App() {
     setEvents((prev) =>
       prev.map((e) => (e.id === id ? { ...e, status: 'Reviewed' } : e))
     );
+    updateRemoteAlertStatus(id, 'Reviewed');
     showToast('Alert marked as reviewed');
   }
 
@@ -263,7 +338,7 @@ export default function App() {
     setBuzzerOn(true);
     setLightOn(true);
     if (notificationSettings.soundAlerts) {
-      playAcousticAlarm(2.5, 3400);
+      playAcousticAlarm(2.8, 3400);
     }
     showToast('EMERGENCY: Panic Alarm triggered across all 4 field boundaries!');
   }
@@ -272,24 +347,6 @@ export default function App() {
     setBuzzerOn(false);
     setLightOn(false);
     showToast('All field deterrents silenced');
-  }
-
-  function triggerZoneTest(zoneName, type) {
-    if (type === 'buzzer') {
-      setBuzzerOn(true);
-      if (notificationSettings.soundAlerts) playAcousticAlarm(1.2, 2600);
-      setTimeout(() => setBuzzerOn(false), 2000);
-      showToast(`2-Second Siren test pulse delivered to ${zoneName} sector`);
-    } else {
-      setLightOn(true);
-      setTimeout(() => setLightOn(false), 2000);
-      showToast(`Strobe flash test pulse delivered to ${zoneName} sector`);
-    }
-  }
-
-  function saveDeveloperProfile(newProfile) {
-    setDeveloperProfile(newProfile);
-    setStoredJson('khetmitra_dev_profile', newProfile);
   }
 
   function saveFarmProfile(newProfile) {
@@ -325,15 +382,13 @@ export default function App() {
   if (!session && !demo) {
     return (
       <AuthScreen
-        onDemoLogin={() => {
-          setDemo(true);
-          showToast('Demo mode active — all field sensors and detections are simulated');
-        }}
+        onLoginSuccess={handleDemoLogin}
       />
     );
   }
 
-  const userEmail = session?.user?.email || 'demo@khetmitra.local';
+  const effectiveEmail =
+    activeUserEmail || session?.user?.email || (userRole === 'admin' ? 'admin@khetmitra.com' : 'farmer@khetmitra.com');
 
   return (
     <div className="app-shell">
@@ -341,7 +396,7 @@ export default function App() {
         Skip to main content
       </a>
 
-      {/* Primary Top Header with all 7 navigation items */}
+      {/* Primary Top Header with role badge, navigation, and mute button */}
       <Header
         activeNav={activeNav}
         onNavigate={(nav) => {
@@ -353,9 +408,13 @@ export default function App() {
         unresolvedCount={unresolvedCount}
         notificationsOpen={notificationsOpen}
         setNotificationsOpen={setNotificationsOpen}
-        userEmail={userEmail}
+        userEmail={effectiveEmail}
+        userRole={userRole}
+        onSwitchRole={handleSwitchRole}
         isDemo={demo}
         isLiveHardware={isLiveHardware}
+        soundEnabled={Boolean(notificationSettings.soundAlerts)}
+        onToggleSound={toggleMasterSound}
         onSignOut={handleSignOut}
       />
 
@@ -367,74 +426,19 @@ export default function App() {
         />
       )}
 
-      {/* Main Content Area: Renders the active tab */}
+      {/* Main Content Area: Renders the appropriate role portal */}
       <main id="main-content" className="main-content">
-        {activeNav === 'Overview' && (
-          <OverviewTab
+        {userRole === 'customer' ? (
+          /* Customer / Farmer Portal */
+          <CustomerPortal
+            activeNav={activeNav}
+            setActiveNav={setActiveNav}
             operatingMode={operatingMode}
             setOperatingMode={setOperatingMode}
             isLiveHardware={isLiveHardware}
             espHeartbeatSeconds={espHeartbeatSeconds}
+            events={events}
             sensors={sensors}
-            events={events}
-            buzzerOn={buzzerOn}
-            setBuzzerOn={setBuzzerOn}
-            buzzerIntensity={buzzerIntensity}
-            lightOn={lightOn}
-            setLightOn={setLightOn}
-            lightIntensity={lightIntensity}
-            autoProtection={autoProtection}
-            setAutoProtection={setAutoProtection}
-            onSimulateDetection={() => simulateDetection()}
-            onTriggerAlarm={triggerPanicAlarm}
-            onSilenceAll={silenceAllDeterrents}
-            onReviewEvent={reviewEvent}
-            onNavigate={(nav) => {
-              setActiveNav(nav);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            onSelectZone={(zone) => setSelectedZone(zone)}
-          />
-        )}
-
-        {activeNav === 'Live Monitoring' && (
-          <LiveMonitoringTab
-            events={events}
-            selectedZone={selectedZone}
-            setSelectedZone={setSelectedZone}
-            onSimulateDetection={(zone) => simulateDetection(zone)}
-            onTriggerZoneTest={triggerZoneTest}
-            buzzerOn={buzzerOn}
-            lightOn={lightOn}
-          />
-        )}
-
-        {activeNav === 'Alerts' && (
-          <AlertsTab
-            events={events}
-            onReviewEvent={reviewEvent}
-            onReviewAll={reviewAllEvents}
-            onClearReviewed={clearReviewedEvents}
-            onSimulateDetection={() => simulateDetection()}
-            onSelectAlert={(alert) => setSelectedAlertForModal(alert)}
-          />
-        )}
-
-        {activeNav === 'Device & Sensors' && (
-          <DeviceSensorsTab
-            isLiveHardware={isLiveHardware}
-            espHeartbeatSeconds={espHeartbeatSeconds}
-            onPingController={() => {
-              setEspHeartbeatSeconds(0);
-              showToast('ESP32 ping confirmed (simulated loopback)');
-            }}
-          />
-        )}
-
-        {activeNav === 'Controls' && (
-          <ControlsTab
-            operatingMode={operatingMode}
-            setOperatingMode={setOperatingMode}
             buzzerOn={buzzerOn}
             setBuzzerOn={setBuzzerOn}
             buzzerIntensity={buzzerIntensity}
@@ -447,28 +451,60 @@ export default function App() {
             setAutoProtection={setAutoProtection}
             autoDuration={autoDuration}
             setAutoDuration={setAutoDuration}
-            onTriggerAlarm={triggerPanicAlarm}
-            onSilenceAll={silenceAllDeterrents}
-            onTestPulse={(type) => triggerZoneTest(selectedZone, type)}
-            isLiveHardware={isLiveHardware}
-          />
-        )}
-
-        {activeNav === 'History & Reports' && (
-          <HistoryReportsTab events={events} />
-        )}
-
-        {activeNav === 'Settings' && (
-          <SettingsTab
-            developerProfile={developerProfile}
-            onSaveDeveloperProfile={saveDeveloperProfile}
+            selectedZone={selectedZone}
+            setSelectedZone={setSelectedZone}
             farmProfile={farmProfile}
             onSaveFarmProfile={saveFarmProfile}
             notificationSettings={notificationSettings}
             onSaveNotificationSettings={saveNotificationSettings}
+            onSimulateDetection={simulateDetection}
+            onTriggerAlarm={triggerPanicAlarm}
+            onSilenceAll={silenceAllDeterrents}
+            onReviewEvent={reviewEvent}
+            onReviewAll={reviewAllEvents}
+            onClearReviewed={clearReviewedEvents}
+            onSelectAlert={(alert) => setSelectedAlertForModal(alert)}
             onResetSimulatedData={resetSimulatedData}
+            onOpenDinuvoxModal={() => setDinuvoxModalOpen(true)}
+            userEmail={effectiveEmail}
+          />
+        ) : (
+          /* Administrator Portal */
+          <AdminPortal
+            operatingMode={operatingMode}
+            setOperatingMode={setOperatingMode}
             isLiveHardware={isLiveHardware}
-            userEmail={userEmail}
+            espHeartbeatSeconds={espHeartbeatSeconds}
+            sensors={sensors}
+            events={events}
+            buzzerOn={buzzerOn}
+            setBuzzerOn={setBuzzerOn}
+            buzzerIntensity={buzzerIntensity}
+            setBuzzerIntensity={setBuzzerIntensity}
+            lightOn={lightOn}
+            setLightOn={setLightOn}
+            lightIntensity={lightIntensity}
+            setLightIntensity={setLightIntensity}
+            autoProtection={autoProtection}
+            setAutoProtection={setAutoProtection}
+            autoDuration={autoDuration}
+            setAutoDuration={setAutoDuration}
+            selectedZone={selectedZone}
+            setSelectedZone={setSelectedZone}
+            farmProfile={farmProfile}
+            onSaveFarmProfile={saveFarmProfile}
+            notificationSettings={notificationSettings}
+            onSaveNotificationSettings={saveNotificationSettings}
+            onSimulateDetection={simulateDetection}
+            onTriggerAlarm={triggerPanicAlarm}
+            onSilenceAll={silenceAllDeterrents}
+            onReviewEvent={reviewEvent}
+            onReviewAll={reviewAllEvents}
+            onClearReviewed={clearReviewedEvents}
+            onSelectAlert={(alert) => setSelectedAlertForModal(alert)}
+            onResetSimulatedData={resetSimulatedData}
+            onOpenDinuvoxModal={() => setDinuvoxModalOpen(true)}
+            userEmail={effectiveEmail}
           />
         )}
       </main>
@@ -481,6 +517,39 @@ export default function App() {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         unresolvedCount={unresolvedCount}
+      />
+
+      {/* Graffiti "Designed by Dinuvox" label */}
+      <div
+        className="dinuvox-graffiti-label"
+        onClick={() => setDinuvoxModalOpen(true)}
+        title="Tap to view architect credentials"
+        role="button"
+        tabIndex={0}
+      >
+        <span className="graffiti-text" aria-label="Designed by Dinuvox">
+          {'Designed by '.split('').map((ch, i) => (
+            <span key={i} className="graffiti-char" style={{ animationDelay: `${i * 0.07}s` }}>
+              {ch === ' ' ? '\u00A0' : ch}
+            </span>
+          ))}
+          <span className="graffiti-dinuvox">
+            {'Dinuvox'.split('').map((ch, i) => (
+              <span key={i} className="graffiti-char graffiti-bold" style={{ animationDelay: `${(i + 12) * 0.07}s` }}>
+                {ch}
+              </span>
+            ))}
+          </span>
+        </span>
+        <span className="graffiti-spray" />
+        <span className="graffiti-spray graffiti-spray-2" />
+      </div>
+
+      {/* Dinuvox Profile Modal */}
+      <DinuvoxModal
+        isOpen={dinuvoxModalOpen}
+        onClose={() => setDinuvoxModalOpen(false)}
+        developerProfile={developerProfile}
       />
 
       {/* Incident Detail Modal */}

@@ -11,10 +11,21 @@ import {
   LogOut,
   Menu,
   X,
+  Volume2,
+  VolumeX,
+  Sprout,
+  Users,
+  Shield,
+  ArrowRightLeft,
 } from 'lucide-react';
 import Brand from './Brand';
 
-export const NAV_ITEMS = [
+export const ADMIN_NAV = [
+  { id: 'users', label: 'User Management', icon: Users },
+  { id: 'settings', label: 'App Settings', icon: Settings },
+];
+
+export const CUSTOMER_NAV = [
   { id: 'Overview', label: 'Overview', icon: Activity },
   { id: 'Live Monitoring', label: 'Live Monitoring', icon: Compass },
   { id: 'Alerts', label: 'Alerts', icon: Bell },
@@ -33,10 +44,16 @@ export default function Header({
   notificationsOpen,
   setNotificationsOpen,
   userEmail,
+  userRole,
+  onSwitchRole,
   isDemo,
   isLiveHardware,
+  soundEnabled,
+  onToggleSound,
   onSignOut,
 }) {
+  const navItems = userRole === 'admin' ? ADMIN_NAV : CUSTOMER_NAV;
+
   return (
     <header className="site-header">
       <button
@@ -49,14 +66,19 @@ export default function Header({
         {mobileNav ? <X size={20} /> : <Menu size={20} />}
       </button>
 
-      <Brand />
+      <div className="brand-role-wrap">
+        <Brand />
+        <span className={`portal-role-pill ${userRole === 'admin' ? 'role-admin' : 'role-customer'}`}>
+          {userRole === 'admin' ? 'Admin Console' : 'Customer View'}
+        </span>
+      </div>
 
       <nav
         id="app-nav"
         className={`primary-nav ${mobileNav ? 'primary-nav-open' : ''}`}
         aria-label="Main navigation"
       >
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeNav === item.id;
           return (
@@ -84,10 +106,24 @@ export default function Header({
               {(userEmail || 'D').slice(0, 1).toUpperCase()}
             </div>
             <div className="profile-info">
-              <strong>{isDemo ? 'Demo Farmer' : userEmail.split('@')[0]}</strong>
-              <span>{isDemo ? 'Simulated Sandbox' : userEmail}</span>
+              <strong>{userRole === 'admin' ? 'System Administrator' : 'Customer Farmer'}</strong>
+              <span>{userEmail}</span>
             </div>
           </div>
+
+          {isDemo && onSwitchRole && (
+            <button
+              type="button"
+              className="btn btn-ghost full-btn"
+              onClick={() => {
+                onSwitchRole(userRole === 'admin' ? 'customer' : 'admin');
+                setMobileNav(false);
+              }}
+            >
+              <ArrowRightLeft size={15} /> Switch to {userRole === 'admin' ? 'Customer View' : 'Admin Console'}
+            </button>
+          )}
+
           <button type="button" className="btn btn-outline full-btn" onClick={onSignOut}>
             <LogOut size={16} /> Sign out
           </button>
@@ -95,6 +131,40 @@ export default function Header({
       </nav>
 
       <div className="header-actions">
+        {/* Role Quick Switcher for Demo demonstration */}
+        {isDemo && onSwitchRole && (
+          <button
+            type="button"
+            className="role-switch-chip"
+            onClick={() => onSwitchRole(userRole === 'admin' ? 'customer' : 'admin')}
+            title={`Currently in ${userRole === 'admin' ? 'Admin Console' : 'Customer View'}. Click to switch view.`}
+          >
+            <ArrowRightLeft size={13} />
+            <span className="switch-chip-text">
+              {userRole === 'admin' ? 'Switch to Customer' : 'Switch to Admin'}
+            </span>
+          </button>
+        )}
+
+        {/* Master Sound Alarm Toggle Button */}
+        <button
+          type="button"
+          className="icon-button sound-toggle-btn"
+          onClick={onToggleSound}
+          title={
+            soundEnabled
+              ? 'Acoustic siren alarms unmuted (click to mute)'
+              : 'Acoustic siren alarms muted (click to enable)'
+          }
+          aria-label={soundEnabled ? 'Mute siren alarm audio' : 'Enable siren alarm audio'}
+        >
+          {soundEnabled ? (
+            <Volume2 size={19} className="text-leaf" />
+          ) : (
+            <VolumeX size={19} className="text-muted" />
+          )}
+        </button>
+
         {/* Prominent Demo Mode vs Live Hardware Chip */}
         <div
           className={`status-chip ${isLiveHardware ? 'chip-live' : 'chip-demo'}`}
@@ -144,12 +214,14 @@ export default function Header({
           type="button"
           className="user-chip"
           onClick={onSignOut}
-          title={`Signed in as ${userEmail} — click to sign out`}
+          title={`Signed in as ${userEmail} (${userRole}) — click to sign out`}
         >
           <span className="avatar small-avatar">
             {(userEmail || 'D').slice(0, 1).toUpperCase()}
           </span>
-          <span className="user-chip-name">{isDemo ? 'Demo' : userEmail.split('@')[0]}</span>
+          <span className="user-chip-name">
+            {userRole === 'admin' ? 'Admin' : 'Farmer'}
+          </span>
           <LogOut size={14} />
         </button>
       </div>

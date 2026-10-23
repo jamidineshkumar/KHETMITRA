@@ -2284,3 +2284,1064 @@ input:focus-visible {
   .mobile-dock { grid-template-columns: repeat(5, 1fr); }
   .panic-actions { flex-direction: column; }
 }
+
+
+/* Radar Legend & Per-Sector Sensitivity Styles */
+.radar-legend {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 700;
+}
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.legend-dot.green { background: #2ea44f; }
+.legend-dot.red { background: #ff3b30; }
+.legend-dot.gray { background: #a89d8f; }
+
+.sector-muted {
+  opacity: 0.6;
+  background: #f0ebe1 !important;
+}
+.is-bypassed {
+  opacity: 0.7;
+  border-style: dashed;
+}
+.direction-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.zone-range-badge {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--leaf-deep);
+  background: var(--cream);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.sector-sensitivity-control {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+/* Controls Enhancements */
+.frequency-selector-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  margin-top: 12px;
+}
+.frequency-badge {
+  display: inline-block;
+  font-size: 12px;
+  background: var(--cream);
+  color: var(--earth);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+.night-mode-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
+}
+.night-mode-sub {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Time of Day Distribution */
+.time-distribution-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.time-stat-box {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+}
+.time-stat-title {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.time-stat-count {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--leaf-deep);
+  margin-bottom: 6px;
+}
+.time-stat-sub {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.mt-1 { margin-top: 4px; }
+
+/* Printable Report Card */
+.print-report-card {
+  width: min(100%, 720px);
+}
+.printable-body {
+  font-family: Arial, sans-serif;
+  color: #111;
+}
+.print-report-header {
+  border-bottom: 2px solid #2f6b47;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+.print-report-header h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  color: #2f6b47;
+}
+.print-report-header p {
+  margin: 2px 0;
+  font-size: 12px;
+  color: #555;
+}
+.print-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: #f7f9f7;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+.print-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+.print-table th, .print-table td {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+.print-table th {
+  background: #eef5ef;
+  font-weight: bold;
+}
+.print-footnote {
+  font-size: 11px;
+  color: #777;
+  text-align: center;
+  margin: 0;
+}
+
+/* Sound button */
+.sound-toggle-btn {
+  margin-right: -2px;
+}
+.text-muted {
+  color: var(--muted);
+}
+
+@media (max-width: 800px) {
+  .time-distribution-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* ==========================================================
+   OVERVIEW COLLISION REPAIRS & ROLE-BASED PORTALS (DINUVOX)
+   ========================================================== */
+
+/* Overview Container & Spacing Fixes */
+.overview-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dashboard-status-banner {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+  gap: 20px !important;
+  align-items: stretch !important;
+}
+
+.stats-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+}
+@media (max-width: 1100px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 640px) {
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* 6-Column Alignment for Overview Alerts */
+.events-head-6col,
+.event-row-6col {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.4fr) minmax(85px, 0.7fr) minmax(90px, 0.8fr) minmax(130px, 1.2fr) minmax(80px, 0.7fr) 85px;
+  gap: 12px;
+  align-items: center;
+}
+.events-head-6col {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9a8d7a;
+  padding: 0 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.event-row-6col {
+  padding: 12px 8px;
+  border-bottom: 1px solid #f0e7d8;
+}
+
+/* Header Brand & Role Badges */
+.brand-role-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.portal-role-pill {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.role-admin {
+  background: #fdece6;
+  color: #c45a32;
+  border: 1px solid #f7cfc0;
+}
+.role-customer {
+  background: var(--leaf-soft);
+  color: var(--leaf-deep);
+  border: 1px solid #c2e2c8;
+}
+.role-switch-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--cream);
+  color: var(--earth);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.role-switch-chip:hover {
+  background: #fff;
+  border-color: var(--leaf);
+}
+
+/* Customer Subnav Tabs */
+.customer-subnav {
+  display: flex;
+  gap: 8px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  width: fit-content;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(80, 58, 32, 0.04);
+}
+.subnav-btn {
+  border: 0;
+  background: transparent;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+.subnav-btn:hover {
+  color: var(--ink);
+}
+.subnav-btn.active {
+  background: var(--leaf);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(61, 139, 92, 0.25);
+}
+
+/* Admin Console Subnav */
+.admin-console-subnav {
+  margin-bottom: 24px;
+}
+.admin-subnav-items {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 6px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(80, 58, 32, 0.04);
+}
+.admin-subnav-btn {
+  border: 0;
+  background: transparent;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+.admin-subnav-btn:hover {
+  background: var(--cream);
+  color: var(--earth);
+}
+.admin-subnav-btn.active {
+  background: #2c2418;
+  color: #fff;
+}
+
+/* Global Footer with Dinuvox Credit */
+.site-footer {
+  margin-top: 48px;
+  padding: 24px;
+  border-top: 1px solid rgba(234, 223, 206, 0.8);
+  background: rgba(255, 253, 248, 0.7);
+}
+.footer-content {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.footer-dinuvox-btn,
+.footer-dinuvox-link {
+  border: 0;
+  background: var(--cream);
+  color: var(--earth);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  transition: all 0.15s ease;
+}
+.footer-dinuvox-btn:hover,
+.footer-dinuvox-link:hover {
+  background: #fff;
+  border-color: var(--leaf);
+  transform: translateY(-1px);
+}
+.footer-dinuvox-btn strong,
+.footer-dinuvox-link strong {
+  color: var(--leaf-deep);
+}
+
+/* Dinuvox Profile Modal */
+.dinuvox-modal-card {
+  width: min(100%, 560px);
+}
+.dinuvox-badge-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #e4f3e7 0%, #c2e2c8 100%);
+  color: var(--leaf-deep);
+}
+.dinuvox-profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 18px;
+}
+.dinuvox-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--cream);
+  color: var(--leaf-deep);
+  border: 2px solid var(--leaf);
+  flex-shrink: 0;
+}
+.dinuvox-hero-copy h4 {
+  margin: 0 0 2px;
+  font-size: 20px;
+  font-family: Fraunces, Georgia, serif;
+}
+.dinuvox-role-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--leaf-deep);
+  background: var(--leaf-soft);
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+.dinuvox-bio {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.dinuvox-project-specs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.d-spec-item {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+.d-spec-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+.d-spec-item strong {
+  font-size: 13px;
+  color: var(--ink);
+}
+.dinuvox-social-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.dinuvox-social-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  transition: all 0.15s ease;
+}
+.dinuvox-social-card:hover {
+  border-color: var(--leaf);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(61, 139, 92, 0.1);
+}
+.icon-linkedin { color: #0a66c2; }
+.icon-instagram { color: #e1306c; }
+.icon-github { color: #24292e; }
+.dinuvox-social-card strong { font-size: 13px; }
+.dinuvox-social-card span { font-size: 11px; color: var(--muted); }
+.social-ext-icon { position: absolute; top: 10px; right: 10px; color: var(--muted); }
+
+/* Auth Demo Buttons Grid */
+.auth-demo-buttons-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0;
+}
+.demo-role-btn {
+  height: 48px;
+  font-size: 13px;
+}
+.customer-btn:hover {
+  background: var(--leaf-soft);
+  border-color: var(--leaf);
+  color: var(--leaf-deep);
+}
+.admin-btn:hover {
+  background: #fdece6;
+  border-color: #f7cfc0;
+  color: #c45a32;
+}
+
+/* Settings Credits Box */
+.settings-credits-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+.scb-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+@media (max-width: 640px) {
+  .customer-subnav {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 16px;
+  }
+  .dinuvox-social-grid {
+    grid-template-columns: 1fr;
+  }
+  .dinuvox-profile-hero {
+    flex-direction: column;
+    text-align: center;
+  }
+  .events-head-6col {
+    display: none;
+  }
+  .event-row-6col {
+    grid-template-columns: 1fr auto;
+    align-items: start;
+  }
+}
+
+
+/* ============================================================
+   DINUVOX ANIMATED SETTINGS CARD & CREDENTIAL MODAL
+   ============================================================ */
+
+/* --- Shimmer Border Keyframes --- */
+@keyframes shimmer-border {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes aura-glow {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.04); }
+}
+@keyframes sparkle-spin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(15deg) scale(1.15); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(61, 139, 92, 0.45); }
+  70% { box-shadow: 0 0 0 12px rgba(61, 139, 92, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(61, 139, 92, 0); }
+}
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* --- Settings Card: Animated Dinuvox Creator Card --- */
+.dinuvox-settings-card {
+  position: relative;
+  overflow: hidden;
+  border: none !important;
+  background: linear-gradient(135deg, #f7fdf8 0%, #eef8f1 40%, #fdf8f2 100%) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.dinuvox-settings-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 36px rgba(61, 139, 92, 0.12), 0 2px 8px rgba(61, 139, 92, 0.08);
+}
+
+/* Animated shimmer border overlay */
+.dinuvox-shimmer-border {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--leaf) 0%,
+    var(--sky) 25%,
+    var(--terra) 50%,
+    var(--leaf) 75%,
+    var(--sky) 100%
+  );
+  background-size: 300% 300%;
+  animation: shimmer-border 4s ease infinite;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dinuvox-card-content {
+  position: relative;
+  z-index: 2;
+  padding: 4px;
+}
+
+.dinuvox-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, var(--leaf-soft) 0%, #d9f0df 100%);
+  color: var(--leaf-deep);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+.sparkle-anim {
+  animation: sparkle-spin 2s ease-in-out infinite;
+}
+
+.dinuvox-heading-title {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-family: Fraunces, Georgia, serif;
+  background: linear-gradient(135deg, var(--leaf-deep) 0%, var(--terra) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dinuvox-card-desc {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.55;
+  max-width: 480px;
+}
+
+.dinuvox-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.dinuvox-mini-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.dinuvox-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--leaf) 0%, var(--leaf-deep) 100%);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(61, 139, 92, 0.25);
+}
+.dinuvox-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(61, 139, 92, 0.35);
+}
+
+/* --- Dinuvox Credential Modal (glassmorphism) --- */
+.dinuvox-backdrop-blur {
+  backdrop-filter: blur(8px) saturate(1.4);
+  -webkit-backdrop-filter: blur(8px) saturate(1.4);
+  background: rgba(0, 0, 0, 0.45) !important;
+}
+.dinuvox-aesthetic-card {
+  width: min(94vw, 520px) !important;
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  background: rgba(255, 253, 248, 0.92) !important;
+  backdrop-filter: blur(12px);
+  animation: fade-in-up 0.35s ease;
+}
+
+.dinuvox-glow-aura {
+  position: absolute;
+  inset: -40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(61, 139, 92, 0.18) 0%, transparent 60%),
+              radial-gradient(circle at 70% 70%, rgba(86, 164, 210, 0.12) 0%, transparent 50%);
+  animation: aura-glow 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+.dinuvox-card-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.dinuvox-header-band {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 24px 24px 0;
+}
+.dinuvox-avatar-wrapper {
+  position: relative;
+}
+.dinuvox-avatar-ring {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, var(--leaf) 0%, var(--sky) 50%, var(--terra) 100%);
+  background-size: 200% 200%;
+  animation: shimmer-border 3s ease infinite;
+}
+.dinuvox-avatar-core {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--cream);
+  display: grid;
+  place-items: center;
+  color: var(--leaf-deep);
+}
+.dinuvox-online-pulse {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--leaf);
+  border: 3px solid var(--cream);
+  animation: pulse-ring 2s ease-out infinite;
+}
+.dinuvox-close-btn {
+  background: rgba(0, 0, 0, 0.06);
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--muted);
+  transition: all 0.15s ease;
+}
+.dinuvox-close-btn:hover {
+  background: rgba(0, 0, 0, 0.12);
+  color: var(--ink);
+}
+
+.dinuvox-body-content {
+  padding: 20px 24px;
+}
+.dinuvox-title-group {
+  margin-bottom: 16px;
+}
+.dinuvox-shimmer-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--leaf-deep);
+  background: var(--leaf-soft);
+  padding: 3px 10px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+.dinuvox-name {
+  margin: 6px 0 4px;
+  font-size: 26px;
+  font-family: Fraunces, Georgia, serif;
+  background: linear-gradient(135deg, var(--leaf-deep) 0%, #2d6b4e 50%, var(--terra) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.dinuvox-tagline {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.dinuvox-bio-narrative {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--earth);
+  margin: 0 0 18px;
+}
+
+.dinuvox-tech-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.d-tech-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--leaf-deep);
+  background: var(--leaf-soft);
+  border: 1px solid rgba(61, 139, 92, 0.15);
+  padding: 5px 12px;
+  border-radius: 8px;
+}
+
+.dinuvox-aesthetic-links {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.d-aesthetic-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: inherit;
+}
+.d-aesthetic-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+.d-link-linkedin:hover { border-color: #0a66c2; color: #0a66c2; }
+.d-link-instagram:hover { border-color: #e1306c; color: #e1306c; }
+.d-link-github:hover { border-color: #24292e; color: #24292e; }
+.d-link-arrow { opacity: 0.4; }
+
+.dinuvox-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(234, 223, 206, 0.5);
+  background: rgba(255, 253, 248, 0.6);
+}
+.dinuvox-foot-text {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .dinuvox-aesthetic-card {
+    width: 96vw !important;
+    border-radius: 18px !important;
+  }
+  .dinuvox-aesthetic-links {
+    flex-direction: column;
+  }
+  .dinuvox-tech-badges {
+    gap: 6px;
+  }
+  .dinuvox-tag-row {
+    gap: 6px;
+  }
+}
+
+
+/* ============================================================
+   GRAFFITI "DESIGNED BY DINUVOX" LABEL
+   ============================================================ */
+
+@keyframes graffiti-drip {
+  0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 0; }
+  20%  { opacity: 1; }
+  40%  { transform: translateY(-2px) rotate(-2deg) scale(1.06); }
+  60%  { transform: translateY(1px) rotate(1.5deg) scale(0.97); }
+  80%  { transform: translateY(-1px) rotate(-0.5deg) scale(1.02); }
+  100% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+}
+
+@keyframes graffiti-glow-pulse {
+  0%, 100% {
+    text-shadow:
+      0 0 4px rgba(61, 139, 92, 0.3),
+      0 0 8px rgba(61, 139, 92, 0.1);
+  }
+  50% {
+    text-shadow:
+      0 0 6px rgba(61, 139, 92, 0.5),
+      0 0 18px rgba(61, 139, 92, 0.15),
+      0 0 32px rgba(86, 164, 210, 0.08);
+  }
+}
+
+@keyframes spray-drift {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.22; }
+  50%  { transform: translate(3px, -2px) scale(1.3); opacity: 0.12; }
+  100% { transform: translate(0, 0) scale(1); opacity: 0.22; }
+}
+
+@keyframes spray-drift-2 {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.15; }
+  50%  { transform: translate(-4px, 2px) scale(1.4); opacity: 0.08; }
+  100% { transform: translate(0, 0) scale(1); opacity: 0.15; }
+}
+
+.dinuvox-graffiti-label {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 18px 24px 22px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: hidden;
+  transition: transform 0.25s ease;
+}
+.dinuvox-graffiti-label:hover {
+  transform: scale(1.04);
+}
+.dinuvox-graffiti-label:active {
+  transform: scale(0.97);
+}
+
+/* Spray paint splatter dots */
+.graffiti-spray {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(61, 139, 92, 0.18) 0%, transparent 70%);
+  pointer-events: none;
+  right: calc(50% - 90px);
+  bottom: 8px;
+  animation: spray-drift 5s ease-in-out infinite;
+}
+.graffiti-spray-2 {
+  width: 28px;
+  height: 28px;
+  background: radial-gradient(circle, rgba(86, 164, 210, 0.15) 0%, transparent 70%);
+  left: calc(50% - 80px);
+  right: auto;
+  bottom: 12px;
+  animation: spray-drift-2 6s ease-in-out infinite;
+}
+
+.graffiti-text {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: 'Segoe Print', 'Comic Sans MS', 'Permanent Marker', 'Caveat', cursive;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  animation: graffiti-glow-pulse 4s ease-in-out infinite;
+}
+
+.graffiti-char {
+  display: inline-block;
+  animation: graffiti-drip 0.8s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.graffiti-dinuvox {
+  display: inline-flex;
+}
+
+.graffiti-bold {
+  font-weight: 900;
+  font-size: 15px;
+  background: linear-gradient(
+    135deg,
+    var(--leaf-deep) 0%,
+    var(--leaf) 35%,
+    var(--terra) 70%,
+    var(--leaf-deep) 100%
+  );
+  background-size: 250% 250%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation:
+    graffiti-drip 0.8s cubic-bezier(0.23, 1, 0.32, 1) both,
+    shimmer-border 6s ease infinite;
+  filter: drop-shadow(0 1px 2px rgba(61, 139, 92, 0.2));
+}
+
+/* Hide below the mobile dock on small screens */
+@media (max-width: 768px) {
+  .dinuvox-graffiti-label {
+    padding-bottom: 80px; /* space for mobile dock */
+  }
+}
