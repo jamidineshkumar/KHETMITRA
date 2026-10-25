@@ -86,6 +86,7 @@ export default function AdminPortal({
   userEmail,
   isLiveHardware,
   onResetSimulatedData,
+  onSendDemoAlert,
 }) {
   const [adminTab, setAdminTab] = useState('users'); // 'users' or 'settings'
   const [usersList, setUsersList] = useState(INITIAL_USERS);
@@ -423,6 +424,20 @@ export default function AdminPortal({
                   </label>
                 </div>
               </div>
+
+              <hr className="divider-hr" />
+
+              <h4>Customer Alert Demo</h4>
+              <p className="tel-sub mb-2">
+                Send a clearly labelled test alert to signed-in customer dashboards. This does not represent a real sensor event and does not activate hardware.
+              </p>
+              <button
+                type="button"
+                className="btn btn-outline full-btn mb-3"
+                onClick={onSendDemoAlert}
+              >
+                <AlertTriangle size={15} /> Send Demo Alert to Customers
+              </button>
 
               <hr className="divider-hr" />
 
