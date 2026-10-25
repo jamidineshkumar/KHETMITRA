@@ -24,6 +24,19 @@ create policy "Authenticated users can read field alerts"
   to authenticated
   using (auth.uid() is not null);
 
+-- Demo-only inserts are explicitly labelled and never trigger physical hardware.
+-- Production admin authorization should replace this broad authenticated demo policy.
+drop policy if exists "Authenticated users can create labelled demo alerts" on public.field_alerts;
+create policy "Authenticated users can create labelled demo alerts"
+  on public.field_alerts for insert
+  to authenticated
+  with check (
+    auth.uid() is not null
+    and notes like '[DEMO ALERT]%'
+    and sensor_id like 'DEMO-%'
+    and animal = 'Demo wildlife detection'
+  );
+
 -- Telemetry is read-only to signed-in clients. No browser role can forge readings.
 create policy "Authenticated users can read device telemetry"
   on public.device_telemetry for select
