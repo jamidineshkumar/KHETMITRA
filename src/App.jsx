@@ -4,6 +4,7 @@ import { hasSupabaseConfig, supabase } from './supabase';
 import {
   updateRemoteAlertStatus,
   subscribeToRealtimeAlerts,
+  pushAlertToRemote,
 } from './services/supabaseService';
 
 // Component Imports
@@ -208,6 +209,26 @@ export default function App() {
     showToast('Demo detections are disabled. Connect the physical ESP32 module to receive events.');
   }
 
+  async function sendAdminDemoAlert() {
+    const demoAlert = {
+      side: 'North',
+      sensorId: 'DEMO-SENSOR-01',
+      animal: 'Demo wildlife detection',
+      threatLevel: 'High',
+      severity: 'high',
+      status: 'New',
+      deterrentAction: 'Demo alert only — no hardware action triggered',
+      deterrentSuccess: false,
+      notes: '[DEMO ALERT] Admin-triggered test alert. Not a real sensor detection.',
+    };
+    const saved = await pushAlertToRemote(demoAlert);
+    if (saved) {
+      showToast('Demo alert sent to customer dashboards.');
+    } else {
+      showToast('Could not send demo alert. Apply the demo-alert SQL migration in Supabase, then try again.');
+    }
+  }
+
   function reviewEvent(id) {
     setEvents((prev) =>
       prev.map((e) => (e.id === id ? { ...e, status: 'Reviewed' } : e))
@@ -354,6 +375,7 @@ export default function App() {
             onClearReviewed={clearReviewedEvents}
             onSelectAlert={(alert) => setSelectedAlertForModal(alert)}
             onResetSimulatedData={resetSimulatedData}
+            onSendDemoAlert={sendAdminDemoAlert}
             userEmail={effectiveEmail}
           />
         ) : (
