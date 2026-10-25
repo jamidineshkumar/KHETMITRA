@@ -375,7 +375,6 @@ export default function App() {
             onClearReviewed={clearReviewedEvents}
             onSelectAlert={(alert) => setSelectedAlertForModal(alert)}
             onResetSimulatedData={resetSimulatedData}
-            onSendDemoAlert={sendAdminDemoAlert}
             userEmail={effectiveEmail}
           />
         ) : (
@@ -413,6 +412,7 @@ export default function App() {
             onClearReviewed={clearReviewedEvents}
             onSelectAlert={(alert) => setSelectedAlertForModal(alert)}
             onResetSimulatedData={resetSimulatedData}
+            onSendDemoAlert={sendAdminDemoAlert}
             userEmail={effectiveEmail}
           />
         )}
