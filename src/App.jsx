@@ -66,7 +66,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [authChecked, setAuthChecked] = useState(!hasSupabaseConfig);
   const demo = false; // Demo authentication is intentionally disabled.
-  const [userRole] = useState('customer'); // Admin privileges must come from trusted server-side authorization.
+  const userRole = session?.user?.app_metadata?.role === 'admin' ? 'admin' : 'customer'; // Read only trusted server-managed Supabase app metadata.
   const [activeUserEmail, setActiveUserEmail] = useState('');
 
   // Navigation state
